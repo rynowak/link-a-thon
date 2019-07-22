@@ -1,4 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project>
+
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk.Web" />
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
@@ -16,8 +18,6 @@
       set this to true to have the linker go all aggro
     -->
     <LinkAggressively>false</LinkAggressively>
-
-    <CustomAfterRazorSdkTargets>..\..\linker\Custom.Linker.targets</CustomAfterRazorSdkTargets>
   </PropertyGroup>
 
   <ItemGroup>
@@ -46,9 +46,11 @@
   </Target>
 
   <ItemGroup>
-    <ILLinkCustomStep Include="..\CustomSteps\bin\Debug\netstandard2.0\CustomSteps.dll">
+    <ILLinkCustomStep Include="..\CustomSteps\bin\$(Configuration)\netcoreapp2.0\CustomSteps.dll">
       <StepName>CustomSteps.TestCustomStep</StepName>
     </ILLinkCustomStep>
   </ItemGroup>
 
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.Web" />
+  <Import Project="..\linker\Custom.Linker.targets" />
 </Project>

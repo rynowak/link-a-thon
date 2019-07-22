@@ -5,9 +5,9 @@
       _SetILLinkDefaults;
       _SetCustomStep;
       $(ILLinkDependsOn);
-    <ILLinkDependsOn>
+    </ILLinkDependsOn>
 
-    <ILLinkPath$(MSBUildThisFileDirectory)illink_Release\netcoreapp2.0\illink.dll</ILLinkPath>
+    <ILLinkPath>$(MSBuildThisFileDirectory)illink_Release\netcoreapp2.0\illink.dll</ILLinkPath>
   </PropertyGroup>
 
   <Target Name="_SetCustomStep" Condition="'@(ILLinkCustomStep->Count())' != '0'">

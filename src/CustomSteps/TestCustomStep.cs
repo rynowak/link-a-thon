@@ -8,6 +8,11 @@ namespace CustomSteps
     {
         public void Process(LinkContext context)
         {
+            if (Environment.GetEnvironmentVariable("DEBUG_STEP") == "1")
+            {
+                while (!System.Diagnostics.Debugger.IsAttached);
+            }
+
             Console.WriteLine("It's me, custom step!");
         }
     }
