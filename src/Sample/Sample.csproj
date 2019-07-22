@@ -10,7 +10,7 @@
       produces a log for https://github.com/mono/linker/blob/master/src/analyzer/README.md
       
       -->
-    <_ExtraTrimmerArgs>--dump-dependencies $(_ExtraTrimmerArgs)</_ExtraTrimmerArgs>
+    <_ExtraTrimmerArgs>--dump-dependencies -b true $(_ExtraTrimmerArgs)</_ExtraTrimmerArgs>
 
     <!--
       set this to true to have the linker go all aggro
