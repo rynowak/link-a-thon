@@ -18,7 +18,7 @@
     </ItemGroup>
 
     <PropertyGroup>
-      <_ExtraTrimmerArgs>--custom-step @(_ILLinkCustomStepTransform -> '%(Identity)', ' --custom-step') $(_ExtraTrimmerArgs)</_ExtraTrimmerArgs>
+      <_ExtraTrimmerArgs>--custom-step @(_ILLinkCustomStepTransform ->'%(Identity)', ' --custom-step ') $(_ExtraTrimmerArgs)</_ExtraTrimmerArgs>
     </PropertyGroup>
   </Target>
 
