@@ -4,7 +4,7 @@
     <TargetFramework>netcoreapp3.0</TargetFramework>
 
     <!-- runs the linker during publish -->
-    <PublishTrimmed>true</PublishTrimmed>
+    <PublishTrimmed Condition="'$(NoLink)' != 'true'">true</PublishTrimmed>
 
     <!-- 
       produces a log for https://github.com/mono/linker/blob/master/src/analyzer/README.md
@@ -16,15 +16,18 @@
       set this to true to have the linker go all aggro
     -->
     <LinkAggressively>false</LinkAggressively>
+
+    <DefineConstants Condition="'$(UseLinkerXml)' == 'false'">$(DefineConstants);NO_LINKER_XML</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- Can describe roots to the linker -->
-    <LinkerRootDescriptors Include="Linker.xml" />
+    <LinkerRootDescriptors Condition="'$(UseLinkerXml)' != 'false'" Include="Linker.xml" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\uController\uController.csproj" />
+    <ProjectReference Include="..\uHosting\uHosting.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,12 +1,14 @@
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using uHosting;
 
 namespace Sample
 {
-    public class Startup
+    public class Startup: IMicroStartup
     {
         public void ConfigureServices(IServiceCollection services)
         {
@@ -14,6 +16,10 @@ namespace Sample
                 .AddAuthorization()
                 .AddAuthorizationPolicyEvaluator()
                 .AddJson();
+        }
+
+        public void ConfigureMicroServices(MicroContainerBuilder services)
+        {
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

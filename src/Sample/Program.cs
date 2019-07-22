@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using uHosting;
 
 namespace Sample
 {
@@ -16,11 +17,8 @@ namespace Sample
             CreateHostBuilder(args).Build().Run();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
+        public static MicroHostBuilder CreateHostBuilder(string[] args) =>
+            MicroHost.CreateDefaultBuilder(args)
+                .UseStartup<Startup>();
     }
 }
