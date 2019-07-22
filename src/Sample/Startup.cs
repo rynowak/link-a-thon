@@ -12,7 +12,6 @@ namespace Sample
         {
             services
                 .AddAuthorization()
-                .AddAuthorizationPolicyEvaluator()
                 .AddJson();
         }
 
