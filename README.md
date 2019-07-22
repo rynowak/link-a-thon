@@ -26,7 +26,6 @@ I've got this working with 3.0.100-preview8-013379
 There's a sample in the `src/Sample` directory which can do some hello world type stuff.
 
 
-
 # Samples
 
 Publishing the sample:
@@ -52,6 +51,32 @@ dotnet Sample.dll
 If you're messing with publishing, you probably want to delete the published output between runs. The whole point is to omit binaries that are unused (optimizing for size), and incremental publishing won't delete the files if they already exist. 
 
 
+## Things we want to do
+
+This is a brainstormed list rather than a set of instructions and assignments. I tried to organize these into work-streams. There's a lot we can do parallelize.
+
+Linker extensbility:
+- Create a project to run a *pass* in the linker
+- Use linker extensiblity to pattern-match DI and root types that are registered as services
+- Use linker extensiblity to codegen:
+    - Controller thunks
+    - Model binding
+    - DI
+    - Routing
+
+Linker deltas:
+- Turn on `LinkAggressively` and then add stuff to the Linker.xml file until the project works again. (Do this in a branch)
+- Understand what's making up the bulk of the remaining managed code and where it makes sense to be there (including BCL, ASP.NET Core types)
+- Play with the linker analyzer and `\\fxcore\tools\apireviewer` to understand this info
+
+Metrics:
+- What's the delta between this toy web framework and an MVC REST API (ignore views)? in terms of:
+    - Working set (after first request)
+    - Size on disk
+    - Startup time
+- What are the costly parts of MVC with the same set of factors? (measure and profile)
+- What alternative design choices can we try out with uController and what's the difference in terms of metrics?
+- How much does trimming with the default settings affect these metrics?
 
 ## Resources
 
