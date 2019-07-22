@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <!-- Can describe roots to the linker -->
-    <LinkerRootDescriptors Include="Linker.xml" />
+    <TrimmerRootDescriptor Include="Linker.xml" Condition="'$(LinkAggressively)' == 'true'"/>
   </ItemGroup>
 
   <ItemGroup>
