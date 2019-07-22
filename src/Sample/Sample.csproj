@@ -2,7 +2,26 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
+
+    <!-- runs the linker during publish -->
+    <PublishTrimmed>true</PublishTrimmed>
+
+    <!-- 
+      produces a log for https://github.com/mono/linker/blob/master/src/analyzer/README.md
+      
+      -->
+    <_ExtraTrimmerArgs>--dump-dependencies $(_ExtraTrimmerArgs)</_ExtraTrimmerArgs>
+
+    <!--
+      set this to true to have the linker go all aggro
+    -->
+    <LinkAggressively>false</LinkAggressively>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Can describe roots to the linker -->
+    <LinkerRootDescriptors Include="Linker.xml" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\uController\uController.csproj" />
@@ -11,5 +30,15 @@
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
   </ItemGroup>
+
+  <Target Name="SetAggressiveLinkingDefaults" AfterTargets="_SetILLinkDefaults" Condition="'$(LinkAggressively)' == 'true'">
+    <ItemGroup>
+      <TrimmerRootAssembly Remove="@(TrimmerRootAssembly)" />
+      <TrimmerRootAssembly Include="@(IntermediateAssembly)" />
+      <_ManagedAssembliesToLink Update="@(_ManagedAssembliesToLink)">
+        <action>link</action>
+      </_ManagedAssembliesToLink>
+    </ItemGroup>
+  </Target>
 
 </Project>
