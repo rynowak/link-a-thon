@@ -40,6 +40,19 @@ You'll see a message like the following, which means that its working:
 Optimizing assemblies for size, which may change the behavior of the app. Be sure to test after publishing. See: https://aka.ms/dotnet-illink
 ```
 
+Publishing the sample with aggressive linking:
+
+```txt
+dotnet publish -c Release -r [win10-64|linux-x64] /p:LinkAggressively=true
+```
+
+You'll see a message like the following, which means that its working:
+
+```txt
+  Linker has gone aggro. Yeeting EVERYTHING.
+  Optimizing assemblies for size, which may change the behavior of the app. Be sure to test after publishing. See: https://aka.ms/dotnet-illink
+```
+
 Running the published sample:
 
 ```txt
