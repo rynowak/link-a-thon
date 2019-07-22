@@ -1,3 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- See: https://github.com/mono/linker/blob/master/src/linker/README.md#syntax-of-xml-descriptor -->
 <linker>
-    <!-- See: https://github.com/mono/linker/blob/master/src/linker/README.md#syntax-of-xml-descriptor -->
+  <assembly fullname="Sample">
+    <type fullname="Sample.Startup" />
+    <type fullname="Sample.MyController" />
+  </assembly>
+  <assembly fullname="Microsoft.Extensions.Hosting">
+    <type fullname="Microsoft.Extensions.Hosting.Internal.ApplicationLifetime" />
+    <type fullname="Microsoft.Extensions.Hosting.Internal.ConsoleLifetime" />
+    <type fullname="Microsoft.Extensions.Hosting.Internal.Host" />
+  </assembly>
+  <assembly fullname="Microsoft.Extensions.Logging">
+    <type fullname="Microsoft.Extensions.Logging.LoggerFactory" />
+  </assembly>
+  <assembly fullname="Microsoft.Extensions.Logging.Configuration">
+    <type fullname="Microsoft.Extensions.Logging.Configuration.LoggerProviderConfigurationFactory" />
+    <type fullname="Microsoft.Extensions.Logging.Configuration.LoggerProviderConfigureOptions`2" />
+    <type fullname="Microsoft.Extensions.Logging.Configuration.LoggerProviderOptionsChangeTokenSource`2" />
+    <type fullname="Microsoft.Extensions.Logging.Configuration.LoggerProviderConfiguration`1" />
+  </assembly>
+  <assembly fullname="Microsoft.Extensions.Logging.Console">
+    <type fullname="Microsoft.Extensions.Logging.Console.ConsoleLoggerOptions" />
+    <type fullname="Microsoft.Extensions.Logging.Console.ConsoleLoggerProvider" />
+  </assembly>
+  <assembly fullname="Microsoft.Extensions.Logging.Debug">
+    <type fullname="Microsoft.Extensions.Logging.Debug.DebugLoggerProvider" />
+  </assembly>
+  <assembly fullname="Microsoft.Extensions.Logging.EventSource">
+    <type fullname="Microsoft.Extensions.Logging.EventSource.EventSourceLoggerProvider" />
+    <type fullname="Microsoft.Extensions.Logging.EventLogFiltersConfigureOptions" />
+    <type fullname="Microsoft.Extensions.Logging.EventLogFiltersConfigureOptionsChangeSource" />
+  </assembly>
+  <assembly fullname="Microsoft.Extensions.Logging.EventLog">
+    <type fullname="Microsoft.Extensions.Logging.EventLog.EventLogLoggerProvider" />
+  </assembly>
+  <assembly fullname="Microsoft.AspNetCore.Hosting">
+    <type fullname="Microsoft.AspNetCore.Hosting.GenericWebHostApplicationLifetime" />
+    <type fullname="Microsoft.AspNetCore.Http.DefaultHttpContextFactory" />
+    <type fullname="Microsoft.AspNetCore.Hosting.Builder.ApplicationBuilderFactory" />
+    <type fullname="Microsoft.AspNetCore.Hosting.GenericWebHostService" />
+  </assembly>
+  <assembly fullname="Microsoft.AspNetCore.Http.Abstractions">
+    <type fullname="Microsoft.AspNetCore.Http.HttpContext" />
+    <type fullname="Microsoft.AspNetCore.Http.HttpRequest" />
+  </assembly>
+  <assembly fullname="Microsoft.AspNetCore.Http.Features">
+    <type fullname="Microsoft.AspNetCore.Http.IQueryCollection" />
+  </assembly>
+  <assembly fullname="Microsoft.AspNetCore.Http">
+    <type fullname="Microsoft.AspNetCore.Http.MiddlewareFactory" />
+  </assembly>
+  <assembly fullname="Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets">
+    <type fullname="Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketTransportFactory" />
+  </assembly>
+  <assembly fullname="Microsoft.AspNetCore.Server.Kestrel.Core">
+    <type fullname="Microsoft.AspNetCore.Server.Kestrel.Core.Internal.KestrelServerOptionsSetup" />
+    <type fullname="Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServer" />
+  </assembly>
+  <assembly fullname="Microsoft.AspNetCore">
+    <type fullname="Microsoft.AspNetCore.HostFilteringStartupFilter" />
+  </assembly>
+  <assembly fullname="Microsoft.AspNetCore.HostFiltering">
+    <type fullname="Microsoft.AspNetCore.HostFiltering.HostFilteringOptions" />
+    <type fullname="Microsoft.AspNetCore.HostFiltering.HostFilteringMiddleware" />
+  </assembly>
+  <assembly fullname="Microsoft.AspNetCore.Routing" preserve="all">
+    <type fullname="Microsoft.AspNetCore.Routing.DefaultInlineConstraintResolver" />
+    <type fullname="Microsoft.AspNetCore.Routing.RoutingMarkerService" />
+    <type fullname="Microsoft.AspNetCore.Routing.DefaultParameterPolicyFactory" />
+    <type fullname="Microsoft.AspNetCore.Routing.Matching.DfaMatcherFactory" />
+    <type fullname="Microsoft.AspNetCore.Routing.Matching.DfaMatcherBuilder" />
+    <type fullname="Microsoft.AspNetCore.Routing.Internal.DfaGraphWriter" />
+    <type fullname="Microsoft.AspNetCore.Routing.Matching.DataSourceDependentMatcher">
+        <type fullname="Microsoft.AspNetCore.Routing.Matching.DataSourceDependentMatcher.Lifetime" />
+    </type>
+    <type fullname="Microsoft.AspNetCore.Routing.DefaultLinkGenerator" />
+    <type fullname="Microsoft.AspNetCore.Routing.EndpointNameAddressScheme" />
+    <type fullname="Microsoft.AspNetCore.Routing.RouteValuesAddressScheme" />
+    <type fullname="Microsoft.AspNetCore.Routing.DefaultLinkParser" />
+    <type fullname="Microsoft.AspNetCore.Routing.Matching.DefaultEndpointSelector" />
+    <type fullname="Microsoft.AspNetCore.Routing.Matching.HttpMethodMatcherPolicy" />
+    <type fullname="Microsoft.AspNetCore.Routing.Matching.HostMatcherPolicy" />
+    <type fullname="Microsoft.AspNetCore.Routing.Template.DefaultTemplateBinderFactory" />
+    <type fullname="Microsoft.AspNetCore.Routing.Patterns.DefaultRoutePatternTransformer" />
+    <type fullname="Microsoft.AspNetCore.Routing.Matching.DataSourceDependentMatcher+Lifetime" />
+  </assembly>
+  <assembly fullname="Microsoft.Extensions.ObjectPool">
+    <type fullname="Microsoft.Extensions.ObjectPool.DefaultObjectPoolProvider" />
+  </assembly>
+  <assembly fullname="Microsoft.AspNetCore.Authorization">
+    <type fullname="Microsoft.AspNetCore.Authorization.DefaultAuthorizationService" />
+    <type fullname="Microsoft.AspNetCore.Authorization.DefaultAuthorizationPolicyProvider" />
+    <type fullname="Microsoft.AspNetCore.Authorization.DefaultAuthorizationHandlerProvider" />
+    <type fullname="Microsoft.AspNetCore.Authorization.DefaultAuthorizationEvaluator" />
+    <type fullname="Microsoft.AspNetCore.Authorization.DefaultAuthorizationHandlerContextFactory" />
+    <type fullname="Microsoft.AspNetCore.Authorization.Infrastructure.PassThroughAuthorizationHandler" />
+  </assembly>
+  <assembly fullname="Microsoft.AspNetCore.Authorization.Policy">
+    <type fullname="Microsoft.AspNetCore.Authorization.AuthorizationMiddleware" />
+    <type fullname="Microsoft.AspNetCore.Authorization.Policy.AuthorizationPolicyMarkerService" />
+    <type fullname="Microsoft.AspNetCore.Authorization.Policy.PolicyEvaluator" />
+  </assembly>
+  <assembly fullname="Sample">
+    <type fullname="Sample.JsonResponseWriter" />
+    <type fullname="Sample.JsonRequestReader" />
+  </assembly>
+  <assembly fullname="Microsoft.Extensions.Options">
+    <type fullname="Microsoft.Extensions.Options.OptionsCache`1" />
+    <type fullname="Microsoft.Extensions.Options.OptionsFactory`1" />
+    <type fullname="Microsoft.Extensions.Options.OptionsMonitor`1" />
+    <type fullname="Microsoft.Extensions.Options.OptionsManager`1" />
+  </assembly>
 </linker>

@@ -77,7 +77,7 @@ namespace Microsoft.Extensions.Internal
             var iNotifyCompletionMap = awaiterType
                 .GetTypeInfo()
                 .GetRuntimeInterfaceMap(typeof(INotifyCompletion));
-            var onCompletedMethod = iNotifyCompletionMap.InterfaceMethods.Single(m =>
+            var onCompletedMethod = iNotifyCompletionMap.InterfaceMethods.FirstOrDefault(m =>
                 m.Name.Equals("OnCompleted", StringComparison.OrdinalIgnoreCase)
                 && m.ReturnType == typeof(void)
                 && m.GetParameters().Length == 1
@@ -92,7 +92,7 @@ namespace Microsoft.Extensions.Internal
                 var iCriticalNotifyCompletionMap = awaiterType
                     .GetTypeInfo()
                     .GetRuntimeInterfaceMap(typeof(ICriticalNotifyCompletion));
-                unsafeOnCompletedMethod = iCriticalNotifyCompletionMap.InterfaceMethods.Single(m =>
+                unsafeOnCompletedMethod = iCriticalNotifyCompletionMap.InterfaceMethods.FirstOrDefault(m =>
                     m.Name.Equals("UnsafeOnCompleted", StringComparison.OrdinalIgnoreCase)
                     && m.ReturnType == typeof(void)
                     && m.GetParameters().Length == 1
