@@ -6,9 +6,9 @@
     <!-- runs the linker during publish -->
     <PublishTrimmed>true</PublishTrimmed>
 
-    <!-- 
+    <!--
       produces a log for https://github.com/mono/linker/blob/master/src/analyzer/README.md
-      
+
       -->
     <_ExtraTrimmerArgs>--dump-dependencies -b true $(_ExtraTrimmerArgs)</_ExtraTrimmerArgs>
 
@@ -16,6 +16,8 @@
       set this to true to have the linker go all aggro
     -->
     <LinkAggressively>false</LinkAggressively>
+
+    <CustomAfterRazorSdkTargets>..\..\linker\Custom.Linker.targets</CustomAfterRazorSdkTargets>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\uController\uController.csproj" />
+    <ProjectReference Include="..\CustomSteps\CustomSteps.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,5 +44,11 @@
     </ItemGroup>
     <Message Text="Linker has gone aggro. Yeeting EVERYTHING." Importance="high" />
   </Target>
+
+  <ItemGroup>
+    <ILLinkCustomStep Include="..\CustomSteps\bin\Debug\netstandard2.0\CustomSteps.dll">
+      <StepName>CustomSteps.TestCustomStep</StepName>
+    </ILLinkCustomStep>
+  </ItemGroup>
 
 </Project>
