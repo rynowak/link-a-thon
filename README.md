@@ -50,6 +50,19 @@ dotnet Sample.dll
 
 If you're messing with publishing, you probably want to delete the published output between runs. The whole point is to omit binaries that are unused (optimizing for size), and incremental publishing won't delete the files if they already exist. 
 
+Run the linker aggressively (things will break):
+
+This will trim out ALL un-used code (according to the linker). Expect DI to mess up.
+
+```txt
+dotnet publish ./src/Sample -c Release -r win-x64 -p:LinkAggressively=true
+```
+
+You'll see this message:
+
+```
+Linker has gone aggro. Yeeting EVERYTHING.
+```
 
 ## Things we want to do
 
