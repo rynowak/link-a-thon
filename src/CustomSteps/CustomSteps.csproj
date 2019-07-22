@@ -5,9 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="illink">
-      <HintPath>..\linker\illink_Release\netcoreapp2.0\illink.dll</HintPath>
-    </Reference>
+    <Reference Include="..\linker\illink_Release\netcoreapp2.0\*.dll" />
   </ItemGroup>
 
 </Project>
