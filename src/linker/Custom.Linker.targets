@@ -13,8 +13,8 @@
   <Target Name="_SetCustomStep" Condition="'@(ILLinkCustomStep->Count())' != '0'">
     <ItemGroup>
       <_ILLinkCustomStepTransform Include="@(ILLinkCustomStep->'%(StepName),%(FullPath)')" Condition="'%(ILLinkCustomStep.BeforeStep)'=='' AND '%(ILLinkCustomStep.AfterStep)'==''" />
-      <_ILLinkCustomStepTransform Include="@(ILLinkCustomStep->'%(BeforeStep):%(StepName),%(FullPath)')" Condition="'%(ILLinkCustomStep.BeforeStep)'!=''" />
-      <_ILLinkCustomStepTransform Include="@(ILLinkCustomStep->'%(StepName),%(FullPath):%(AfterStep)')" Condition="'%(ILLinkCustomStep.AfterStep)'!=''" />
+      <_ILLinkCustomStepTransform Include="@(ILLinkCustomStep->'%(StepName),%(FullPath)!%(BeforeStep)')" Condition="'%(ILLinkCustomStep.BeforeStep)'!=''" />
+      <_ILLinkCustomStepTransform Include="@(ILLinkCustomStep->'%(AfterStep)!%(StepName),%(FullPath)')" Condition="'%(ILLinkCustomStep.AfterStep)'!=''" />
     </ItemGroup>
 
     <PropertyGroup>
