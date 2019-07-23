@@ -36,8 +36,8 @@ I wrote a powershell script (contained in this repo) to automate the measurement
 | Template    | None     | 43.5             | 1223.30758   | 84.34             |
 | Template    | Trimming | 43.4765625       | 1579.73156   | 44.57             |
 | Template    | Aggro    | n/a              | n/a          | n/a               |
-| uController | None     | 39.50390625      | 1177.10803   | 85.04             |
+| uController | None     | 39.50390625      | 1028.57312   | 85.04             |
 | uController | Trimming | 39.3203125       | 1317.14828   | 45.25             |
-| uController | Aggro    | 36.80078125      | 1839.00328   | 25.68             |
+| uController | Aggro    | 36.80078125      | 1380.51339   | 25.68             |
 
 ##
