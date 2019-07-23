@@ -18,6 +18,11 @@
       set this to true to have the linker go all aggro
     -->
     <LinkAggressively>false</LinkAggressively>
+
+    <!--
+      Yeah boiiiiiiiiiii.
+    -->
+    <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
 
   <ItemGroup>
