@@ -32,7 +32,7 @@ namespace CustomSteps
                     .Any(ar => string.Equals(ar.Name, "Microsoft.Extensions.DependencyInjection.Abstractions")));
         }
 
-        private class PreserveDIWalker: MetadataWalker
+        private class PreserveDIWalker : MetadataWalker
         {
             private readonly LinkContext _context;
             private MethodDefinition _currentMethod;
@@ -44,7 +44,7 @@ namespace CustomSteps
 
             public void Walk(IEnumerable<AssemblyDefinition> asms)
             {
-                foreach(var asm in asms)
+                foreach (var asm in asms)
                 {
                     WalkAssembly(asm);
                 }
@@ -52,7 +52,7 @@ namespace CustomSteps
 
             protected override void WalkMethod(MethodDefinition method)
             {
-                if(method.Parameters.Any(p => p.ParameterType.FullName.Equals("Microsoft.Extensions.DependencyInjection.IServiceCollection")))
+                if (method.Parameters.Any(p => p.ParameterType.FullName.Equals("Microsoft.Extensions.DependencyInjection.IServiceCollection")))
                 {
                     _currentMethod = method;
                     base.WalkMethod(method);
@@ -62,7 +62,7 @@ namespace CustomSteps
 
             protected override bool VisitInstruction(Instruction instruction)
             {
-                if(instruction.Operand is MethodReference methodRef && IsDIMethod(methodRef))
+                if (instruction.Operand is MethodReference methodRef && IsDIMethod(methodRef))
                 {
                     Console.WriteLine($"Method Call in {_currentMethod.DeclaringType.FullName}.{_currentMethod.Name}: {methodRef.DeclaringType.FullName}.{methodRef.Name}");
                 }
