@@ -47,12 +47,7 @@
 
   <ItemGroup>
     <ILLinkCustomStep Include="..\CustomSteps\bin\$(Configuration)\netcoreapp2.0\CustomSteps.dll">
-      <StepName>CustomSteps.PreserveDIStep</StepName>
-      <BeforeStep>MarkStep</BeforeStep>
-    </ILLinkCustomStep>
-    <ILLinkCustomStep Include="..\CustomSteps\bin\$(Configuration)\netcoreapp2.0\CustomSteps.dll">
-      <StepName>CustomSteps.ControllerInvokerStep</StepName>
-      <BeforeStep>MarkStep</BeforeStep>
+      <StepName>CustomSteps.RewriteControllerStep</StepName>
     </ILLinkCustomStep>
   </ItemGroup>
 

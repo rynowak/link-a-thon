@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using System.Text.Json;
+﻿using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 using uController;
 
@@ -9,77 +6,85 @@ namespace Sample
 {
     public class MyController : Controller
     {
+        //[HttpGet("/")]
+        //public Task Get(HttpContext context)
+        //{
+        //    return context.Response.WriteAsync("Hello World");
+        //}
+
         [HttpGet("/")]
-        public Task Get(HttpContext context)
+        public Result Index([FromQuery]string name)
         {
-            return context.Response.WriteAsync("Hello World");
+            return Ok($"Hello {name}");
         }
 
-        [HttpGet("/blah")]
-        public object Blah()
-        {
-            return new { name = "David Fowler" };
-        }
+        public static Task ExecuteIndex(HttpContext context) => null;
 
-        [HttpGet("/status/{status}")]
-        public Result StatusCode([FromRoute]int status)
-        {
-            return Status(status);
-        }
+        //[HttpGet("/blah")]
+        //public object Blah()
+        //{
+        //    return new { name = "David Fowler" };
+        //}
 
-        [HttpGet("/slow/status/{status}")]
-        public async Task<Result> SlowTaskStatusCode()
-        {
-            await Task.Delay(1000);
+        //[HttpGet("/status/{status}")]
+        //public Result StatusCode([FromRoute]int status)
+        //{
+        //    return Status(status);
+        //}
 
-            return StatusCode(400);
-        }
+        //[HttpGet("/slow/status/{status}")]
+        //public async Task<Result> SlowTaskStatusCode()
+        //{
+        //    await Task.Delay(1000);
 
-        [HttpGet("/fast/status/{status}")]
-        public ValueTask<Result> FastValueTaskStatusCode([FromServices]ILoggerFactory loggerFactory)
-        {
-            return new ValueTask<Result>(Status(201));
-        }
+        //    return StatusCode(400);
+        //}
 
-        [HttpGet("/lag")]
-        public async Task DoAsync(HttpContext context, [FromQuery]string q)
-        {
-            await Task.Delay(100);
+        //[HttpGet("/fast/status/{status}")]
+        //public ValueTask<Result> FastValueTaskStatusCode([FromServices]ILoggerFactory loggerFactory)
+        //{
+        //    return new ValueTask<Result>(Status(201));
+        //}
 
-            await context.Response.WriteAsync(q);
-        }
+        //[HttpGet("/lag")]
+        //public async Task DoAsync(HttpContext context, [FromQuery]string q)
+        //{
+        //    await Task.Delay(100);
 
-        [HttpGet("/hey/david")]
-        public string HelloDavid() => "Hello David!";
+        //    await context.Response.WriteAsync(q);
+        //}
 
-        [HttpGet("/hey/{name?}")]
-        public async Task<string> GetAsync([FromRoute]string name)
-        {
-            await Task.Delay(500);
+        //[HttpGet("/hey/david")]
+        //public string HelloDavid() => "Hello David!";
 
-            return $"Hey {name ?? "David"}!";
-        }
+        //[HttpGet("/hey/{name?}")]
+        //public async Task<string> GetAsync([FromRoute]string name)
+        //{
+        //    await Task.Delay(500);
 
-        [HttpGet("/hello")]
-        public string Hello() => "Hello!";
+        //    return $"Hey {name ?? "David"}!";
+        //}
 
-        [HttpPost("/")]
-        public Result Post([FromBody]JsonDocument obj)
-        {
-            return Ok(obj);
-        }
+        //[HttpGet("/hello")]
+        //public string Hello() => "Hello!";
 
-        [HttpPost("/post-form")]
-        public void PostAForm(IFormCollection form)
-        {
+        //[HttpPost("/")]
+        //public Result Post([FromBody]JsonDocument obj)
+        //{
+        //    return Ok(obj);
+        //}
 
-        }
+        //[HttpPost("/post-form")]
+        //public void PostAForm(IFormCollection form)
+        //{
 
-        [HttpGet("/auth")]
-        [Authorize]
-        public void Authed()
-        {
+        //}
 
-        }
+        //[HttpGet("/auth")]
+        //[Authorize]
+        //public void Authed()
+        //{
+
+        //}
     }
 }
