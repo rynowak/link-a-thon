@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Threading;
 using Mono.Cecil;
 using Mono.Linker;
 using Mono.Linker.Steps;
 
 namespace CustomSteps
 {
-    public class ControllerInvokerStep : IStep
+    // Preserves controller types
+    public class PreserveControllerTypeStep : IStep
     {
         public void Process(LinkContext context)
         {

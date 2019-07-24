@@ -22,7 +22,7 @@
     <!--
       Yeah boiiiiiiiiiii.
     -->
-    <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishReadyToRun>false</PublishReadyToRun>
   </PropertyGroup>
 
   <ItemGroup>
@@ -56,9 +56,13 @@
       <BeforeStep>MarkStep</BeforeStep>
     </ILLinkCustomStep>
     <ILLinkCustomStep Include="..\CustomSteps\bin\$(Configuration)\netcoreapp2.0\CustomSteps.dll">
-      <StepName>CustomSteps.ControllerInvokerStep</StepName>
+      <StepName>CustomSteps.PreserveControllerTypeStep</StepName>
       <BeforeStep>MarkStep</BeforeStep>
     </ILLinkCustomStep>
+    <!--<ILLinkCustomStep Include="..\CustomSteps\bin\$(Configuration)\netcoreapp2.0\CustomSteps.dll">
+      <StepName>CustomSteps.ControllerRegistrationStep</StepName>
+      <AfterStep>MarkStep</AfterStep>
+    </ILLinkCustomStep>-->
   </ItemGroup>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.Web" />

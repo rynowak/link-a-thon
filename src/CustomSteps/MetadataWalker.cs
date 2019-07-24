@@ -37,6 +37,11 @@ namespace CustomSteps
             {
                 WalkCustomAttributes(type);
 
+                foreach (var nested in type.NestedTypes)
+                {
+                    WalkType(nested);
+                }
+
                 foreach (var field in type.Fields)
                 {
                     WalkField(field);
@@ -90,15 +95,7 @@ namespace CustomSteps
 
                 if (method.Body != null)
                 {
-                    foreach (var local in method.Body.Variables)
-                    {
-                        VisitLocal(local);
-                    }
-
-                    foreach (var instruction in method.Body.Instructions)
-                    {
-                        VisitInstruction(instruction);
-                    }
+                    WalkMethodBody(method.Body);
                 }
             }
         }
@@ -108,6 +105,19 @@ namespace CustomSteps
             if (VisitParameter(param))
             {
                 WalkCustomAttributes(param);
+            }
+        }
+
+        protected virtual void WalkMethodBody(MethodBody body)
+        {
+            foreach (var local in body.Variables)
+            {
+                VisitLocal(local);
+            }
+
+            foreach (var instruction in body.Instructions)
+            {
+                VisitInstruction(instruction);
             }
         }
 

@@ -17,8 +17,15 @@ The measureable goal was to determine the impact of removing dynamism and adding
 
 The main axis of comparison is whether the linker is being run, and what *mode* it's running in. I'm defining the following terms:
 - None - no linking/trimming
-- Trimming - using the default `PublishTrimmed` project-level settings
+- Trimming - using the default `PublishTrimmed` project-level settings with `PublishReadyToRun`
 - Aggro - using a custom target to set the link action to `link` for all assemblies
+- Aggro-no-r2r - same as above but without `PublishReadyToRun`
+
+Note that for *None*, *Trimming*, and *Aggro* - all of these modes have ready-to-run images. This choice is made for two reasons:
+- Ready-to-run is the default for *None* for all of the shared-framework assemblies
+- *Trimming* will result in the ready-to-run data being preserved for *most* but not all assemblies
+
+Specifying that ready-to-run is enabled for all of these configurations makes it clear that we're comparing apples-to-apples, and also ensures that we're never testing a configuration where half of the assemblies have ready-to-run applied.
 
 *Aggro-mode* goes well out the boundaries of what can work by default for an application, and requires either extensibility for the linker to function, or manually listing lots of roots in an `.xml` file. I took the approach of using the `.xml` descriptor, and used the error output of the DI system to generate parts of the file. I made no attempt to support *aggro-mode* for the template app.
 
@@ -26,18 +33,23 @@ I wrote a powershell script (contained in this repo) to automate the measurement
 
 ## Hypothesis
 
-1. A *hard-wired* startup experience will have better startup performance than the current MVC experience (scanning) by around 100ms.
-2. 
+1. A *hard-wired* startup experience will have better startup performance than the current MVC experience (scanning) by around 100ms. This means our toy framework should have better startup performance because its doing less work.
+2. Publishing with *trimming* will result in a significant (~40%) size reduction versus the default.
+3. Publishing with *aggro* mode will result in a further significant size reduction versus *trimming*.
+4. Publishing with *aggro* mode will have an effect on the overall working set, as assemblies that need to be read are smaller.
+5. Publishing with *trimming* or *aggro* mode will moderately improve the startup performance as size and number of files that need to be read are smaller.
+6. There are significant reductions in size on disk to be realized from analyzing the code paths used in the workload. Put another way, we can more more size reduction happen by avoiding .NET features with a high cost.
+7. There's a signficant reduction in working set to be realized from avoiding features like expressions or ref-emit used to generate dynamic code in ASP.NET Core.
 
 ## Results
 
-| Workload    | Mode     | Working Set (MB) | Startup (ms) | Size on Disk (MB) |
-|-------------|----------|------------------|--------------|-------------------|
-| Template    | None     | 43.5             | 1223.30758   | 84.34             |
-| Template    | Trimming | 43.4765625       | 1579.73156   | 44.57             |
-| Template    | Aggro    | n/a              | n/a          | n/a               |
-| uController | None     | 39.50390625      | 1028.57312   | 85.04             |
-| uController | Trimming | 39.3203125       | 1317.14828   | 45.25             |
-| uController | Aggro    | 36.80078125      | 1380.51339   | 25.68             |
-
+| Workload    | Mode         | Working Set (MB) | Startup (ms) | Size on Disk (MB) |
+|-------------|--------------|------------------|--------------|-------------------|
+| Template    | None         | 43.25            | 1209.24240   | 84.35             |
+| Template    | Trimming     | 42.421875        | 1207.92251   | 74.52             |
+| Template    | Aggro        | n/a              | n/a          | n/a               |
+| uController | None         | 39.43359375      | 865.06628    | 86.18             |
+| uController | Trimming     | 38.73828125      | 911.25551    | 76.36             |
+| uController | Aggro        | 36.4921875       | 868.71663    | 44.05             |
+| uController | Aggro-no-r2r | 36.609375        | 1380.54862   | 25.68             |
 ##

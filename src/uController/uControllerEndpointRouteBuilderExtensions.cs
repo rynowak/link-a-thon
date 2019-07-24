@@ -1,9 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using uController;
 
-namespace Microsoft.AspNetCore.Routing
+namespace Microsoft.AspNetCore.Builder
 {
-    public static class EndpointRouteBuilderExtensions
+    public static class uControllerEndpointRouteBuilderExtensions
     {
         public static void MapController<THttpHandler>(this IEndpointRouteBuilder builder)
         {
