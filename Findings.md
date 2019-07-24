@@ -58,7 +58,59 @@ This was a fun hackathon project, and I ended up spending way more time on the l
 
 **1. Publishing with *trimming* will result in a significant (~40%) size reduction versus the default.**
 
-It depends. That's not a very satisfying answer is it. 
+It depends: That's not a very satisfying answer is it. 
+
+The most significant benefit of `PublishTrimmed` is that it removes the ready-to-run images from assemblies. I had to test some additional configurations to explore this.
+
+Here's a small data sample.
+
+| Workload    | None     | Trimming (PublishTrimmed) | Trimming + R2R | Trimming - R2R    |
+|-------------|----------|---------------------------|--------------  |-------------------|
+| uController | 84.35    | 45.25                     | 74.52          | 39.71             |
+
+I had to set `PublishReadyToRun` to produce the *Trimming + R2R* configuration. This uses the built in setting to apply ready-to-run after trimming.
+
+I had to write some custom MSBuild to produce the *Trimming - R2R* configuration. This tells the linker to remove ready-to-run from all of the assemblies.
+
+Given that the *Trimming* (`PublishReadyToRun`) output size is between these two other data points, we have to conclude that *some* of the build output is ready-to-run but most is not.
+
+Given that the *Trimming + R2R` output size is so close to the default we have to conclude the that actual effect of removing unreferenced assemblies is small (-~10mb), however the effect of removing ready to run is big (estimated ~35mb) based on the difference between *Trimming + R2R* and *Trimming - R2R*.
+
+So this leaves us in a wierd spot, because what we're shipping in the product behind `PublishReadyToRun` is somewhat of an inconsistent state.
+- To optimize for size at the cost of startup, we should remove ready-to-run and deliver a significant size reduction (~6mb more)
+- To optimize for startup and size where possible, we should apply ready-to-run to everything and accept a paltry size reduction (~10mb).
+
+**2. Publishing with *aggro* mode will result in a further significant size reduction versus *trimming*.**
+
+Proven: Using *aggro mode + R2R* reduces the app to 50% of original size, using *aggro mode - R2R* reduces the app to 30% of original size.
+
+I'll repeat again that *aggro* mode does linking on all assemblies (including the application). Understanding what is required to make ASP.NET Core successful in this more was one of the key outputs of the hackathon.
+
+We took the approach of using the XML manifest to list types that need to be preserved. Some others were working on writing linker extensibility to make this unnecessary. We made some moderate progress on that, but not enough to obsolete the XML file.
+
+Here's roughly what was required to be listed:
+- Add all DI service implementations
+- Types used with `IOptions<>`
+- Controller types
+- POCO types used in serialization
+
+Now we get to defining a term like *linker-friendly* (or *AOT-friendly*). I'm going to define *linker-friendly* as: you can run the linker all the whole app in *link* mode, and produce a working app.
+
+I think we reached the goal of making ASP.NET Core linker friendly using the XML file, but that's not an experience we can give customers. If we want to pursue this, I think we have two options:
+- Use linker extensibility to make types as preserved (pattern recognition) and keep the reflection code paths
+- Use codegen (could be in the linker) to replace reflection code paths with generated code
+
+Based on the work we did in the hackathon, the first path here is feasible without degrading the user experience. It's relatively costly and adds an additional cost to every reflection-based feature we build in the future.
+
+The second path, we didn't get far enough to draw any conclusions.
+
+**3. Publishing with *aggro* mode will have an effect on the overall working set, as assemblies that need to be read are smaller.**
+
+Proven: this is confirmed by small - 8%
+
+**4. Publishing with *trimming* or *aggro* mode will moderately improve the startup performance as size and number of files that need to be read are smaller.**
+
+Not confirmed: this either doesn't improve or the effect was too small to be observed.
 
 **5. A *hard-wired* startup experience will have better startup performance than the current MVC experience (scanning) by around 100ms. This means our toy framework should have better startup performance because its doing less work.**
 
@@ -67,4 +119,3 @@ Proven: We absolutely blew this out of the water. We ended up cutting about 300m
 **6. There's a signficant reduction in working set to be realized from avoiding features like expressions or ref-emit used to generate dynamic code in ASP.NET Core.**
 
 No result: We didn't get far enough to prove or disprove this. We have runtime knobs and dials that allow us to toggle off ref-emit in a few places, and it would be worth investigating. One of the team members was working on a compile-time DI replacement, but we didn't get far enough to see it work.
-

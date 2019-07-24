@@ -2,7 +2,9 @@ param(
     [string] $app,
     [string] $url = "https://localhost:5001/",
     [switch] $trim,
+    [switch] $trimr2r,
     [switch] $aggro,
+    [switch] $r2r,
     [switch] $time)
 
 if (Test-Path "obj\")
@@ -18,7 +20,7 @@ if (Test-Path $path)
     rm $path -r -for
 }
 
-dotnet publish -c Release -r win10-x64 /p:PublishTrimmed=$trim /p:LinkAggressively=$aggro /bl
+dotnet publish -c Release -r win10-x64 /p:PublishTrimmed=$trim /p:LinkAggressively=$aggro /p:LinkAwayReadyToRun=$trimr2r /p:PublishReadyToRun=$r2r /bl
 pushd $path
 Write-Host ("Size is {0:N2} MB" -f ((Get-ChildItem . -Recurse | Measure-Object -Property Length -Sum -ErrorAction Stop).Sum / 1MB))
 
