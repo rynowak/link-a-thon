@@ -49,7 +49,7 @@
       <TrimmerRootAssembly Remove="@(TrimmerRootAssembly)" />
       <TrimmerRootAssembly Include="@(IntermediateAssembly)" />
       <_ManagedAssembliesToLink Update="@(_ManagedAssembliesToLink)" Condition="'%(_ManagedAssembliesToLink.action)' != 'link'">
-        <action>addbypassngen</action>
+        <action>link</action>
       </_ManagedAssembliesToLink>
     </ItemGroup>
     <Message Text="Linker has gone aggro. Yeeting EVERYTHING." Importance="high" />

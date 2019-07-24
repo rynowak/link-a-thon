@@ -13,6 +13,13 @@ The measureable goal was to determine the impact of removing dynamism and adding
 - Startup time (including first request)
 - Size on disk
 
+## Executive Summary
+
+- It's possible for us to get ASP.NET Core to place where the linker can operate upon it (*link* action)
+- It's going to be very hard for us to remove all dynamism from ASP.NET Core, and orthogonal to the linker dicsussion
+- The primary benefit wrt size of the linker with `PublishTrimmed` is removing ready-to-run images
+- If ASP.NET Core is linker-friendly we can reduce size by 50% and keep all of the startup performance
+
 ## Experimental Setup
 
 The main axis of comparison is whether the linker is being run, and what *mode* it's running in. I'm defining the following terms:
@@ -103,6 +110,22 @@ I think we reached the goal of making ASP.NET Core linker friendly using the XML
 Based on the work we did in the hackathon, the first path here is feasible without degrading the user experience. It's relatively costly and adds an additional cost to every reflection-based feature we build in the future.
 
 The second path, we didn't get far enough to draw any conclusions.
+
+----
+
+Here's a breakdown of what's there when you go fully-aggro to reduce size.
+
+Total: 25.68 mb - 183 files
+Managed (total): 9.31 mb - 122 files
+    ASP.NET Core: 1.66 mb - 52 files
+    BCL: 7.44 - 65 files
+Native (total): 16.3 mb - 55 files
+    Windows shims: 844 kb - 40 files
+Misc: 137kb - 6 files (json and config files)
+
+So, about 2/3 of what's there is native dependencies. 
+
+It might be possible to make more ASP.NET Core changes to reduce the amount of managed code here, but it would be very hard to have a big impact because of the proportion of size that is native.
 
 **3. Publishing with *aggro* mode will have an effect on the overall working set, as assemblies that need to be read are smaller.**
 
