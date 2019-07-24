@@ -33,13 +33,12 @@ I wrote a powershell script (contained in this repo) to automate the measurement
 
 ## Hypothesis
 
-1. A *hard-wired* startup experience will have better startup performance than the current MVC experience (scanning) by around 100ms. This means our toy framework should have better startup performance because its doing less work.
-2. Publishing with *trimming* will result in a significant (~40%) size reduction versus the default.
-3. Publishing with *aggro* mode will result in a further significant size reduction versus *trimming*.
-4. Publishing with *aggro* mode will have an effect on the overall working set, as assemblies that need to be read are smaller.
-5. Publishing with *trimming* or *aggro* mode will moderately improve the startup performance as size and number of files that need to be read are smaller.
-6. There are significant reductions in size on disk to be realized from analyzing the code paths used in the workload. Put another way, we can more more size reduction happen by avoiding .NET features with a high cost.
-7. There's a signficant reduction in working set to be realized from avoiding features like expressions or ref-emit used to generate dynamic code in ASP.NET Core.
+1. Publishing with *trimming* will result in a significant (~40%) size reduction versus the default.
+2. Publishing with *aggro* mode will result in a further significant size reduction versus *trimming*.
+3. Publishing with *aggro* mode will have an effect on the overall working set, as assemblies that need to be read are smaller.
+4. Publishing with *trimming* or *aggro* mode will moderately improve the startup performance as size and number of files that need to be read are smaller.
+5. A *hard-wired* startup experience will have better startup performance than the current MVC experience (scanning) by around 100ms. This means our toy framework should have better startup performance because its doing less work
+6. There's a signficant reduction in working set to be realized from avoiding features like expressions or ref-emit used to generate dynamic code in ASP.NET Core.
 
 ## Results
 
@@ -52,4 +51,20 @@ I wrote a powershell script (contained in this repo) to automate the measurement
 | uController | Trimming     | 38.73828125      | 911.25551    | 76.36             |
 | uController | Aggro        | 36.4921875       | 868.71663    | 44.05             |
 | uController | Aggro-no-r2r | 36.609375        | 1380.54862   | 25.68             |
-##
+
+## Conclusions
+
+This was a fun hackathon project, and I ended up spending way more time on the linker aspect of this than I did on code generation. Given the improvement in startup times that we observed, this could be worthwhile regardless of whether the linker is involved.
+
+**1. Publishing with *trimming* will result in a significant (~40%) size reduction versus the default.**
+
+It depends. That's not a very satisfying answer is it. 
+
+**5. A *hard-wired* startup experience will have better startup performance than the current MVC experience (scanning) by around 100ms. This means our toy framework should have better startup performance because its doing less work.**
+
+Proven: We absolutely blew this out of the water. We ended up cutting about 300ms off of startup time without resulting in any tricky code-generation techniques. We need to do some further investigation here to see how we can fold these improvements into the product.
+
+**6. There's a signficant reduction in working set to be realized from avoiding features like expressions or ref-emit used to generate dynamic code in ASP.NET Core.**
+
+No result: We didn't get far enough to prove or disprove this. We have runtime knobs and dials that allow us to toggle off ref-emit in a few places, and it would be worth investigating. One of the team members was working on a compile-time DI replacement, but we didn't get far enough to see it work.
+
