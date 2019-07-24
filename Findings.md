@@ -1,17 +1,20 @@
 # Findings
 
-I did a comparison of the new project template (`dotnet new webapi`) with a toy controller framework (uController). 
+We wanted to understand what it would take to write a linker-friendly REST API stack for ASP.NET Core - and what the impact would be across a few metrics:
+- Working set
+- Startup time (including first request)
+- Size on disk
 
-I'm doing this kind of comparison because it would be non-trivial to retrofit most of ASP.NET Core with linker-friendly features. However adding linker-friendliness to a constraint simplified framework is easy to do. This also provides a more useful measure of what's ideally possible. 
+The set of steps would look like:
+- Make a sample application work with the linker (using XML annotations)
+- Conduct measurements and make comparisons between different modes of linking
+- In parallel, use linker extensiblity to remove the need for annotations and runtime reflection/codegen
+
+For the hackathon we're using a toy controller framework (uController). I'm doing this kind of comparison because it would be non-trivial to retrofit most of ASP.NET Core with linker-friendly features. However adding linker-friendliness to a constraint simplified framework is easy to do. This also provides a more useful measure of what's ideally possible. 
 
 Our toy framework reuses ASP.NET Core's DI and routing system, but replaces most of MVC's dynamism with its own hardcoded logic. Instead of scanning all assemblies for types that look like controllers - the list in uController is hardcoded in source. This could manifest in a shipping product as part of the user experience (users list controller types/methods) or by doing up front discovery in a build/link-time step.
 
 We began this project with the goal of using link-time IL rewriting to replace this manual registration, and to also attempt to replace more complex features like DI with link-time IL generation. We didn't make much progress on these fronts.
-
-The measureable goal was to determine the impact of removing dynamism and adding applying linking across a few metrics:
-- Working set
-- Startup time (including first request)
-- Size on disk
 
 ## Executive Summary
 
