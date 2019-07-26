@@ -118,6 +118,7 @@ The second path, we didn't get far enough to draw any conclusions.
 
 Here's a breakdown of what's there when you go fully-aggro to reduce size.
 
+```txt
 Total: 25.68 mb - 183 files
 Managed (total): 9.31 mb - 122 files
     ASP.NET Core: 1.66 mb - 52 files
@@ -125,6 +126,7 @@ Managed (total): 9.31 mb - 122 files
 Native (total): 16.3 mb - 55 files
     Windows shims: 844 kb - 40 files
 Misc: 137kb - 6 files (json and config files)
+```
 
 So, about 2/3 of what's there is native dependencies. 
 
