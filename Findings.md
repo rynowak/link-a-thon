@@ -41,7 +41,7 @@ Specifying that ready-to-run is enabled for all of these configurations makes it
 
 I wrote a powershell script (contained in this repo) to automate the measurement process.
 
-## Hypothesis
+## Hypotheses
 
 1. Publishing with *trimming* will result in a significant (~40%) size reduction versus the default.
 2. Publishing with *aggro* mode will result in a further significant size reduction versus *trimming*.
@@ -84,9 +84,9 @@ I had to write some custom MSBuild to produce the *Trimming - R2R* configuration
 
 Given that the *Trimming* (`PublishReadyToRun`) output size is between these two other data points, we have to conclude that *some* of the build output is ready-to-run but most is not.
 
-Given that the *Trimming + R2R` output size is so close to the default we have to conclude the that actual effect of removing unreferenced assemblies is small (-~10mb), however the effect of removing ready to run is big (estimated ~35mb) based on the difference between *Trimming + R2R* and *Trimming - R2R*.
+Given that the *Trimming + R2R* output size is so close to the default we have to conclude the that actual effect of removing unreferenced assemblies is small (-~10mb), however the effect of removing ready to run is big (estimated ~35mb) based on the difference between *Trimming + R2R* and *Trimming - R2R*.
 
-So this leaves us in a wierd spot, because what we're shipping in the product behind `PublishReadyToRun` is somewhat of an inconsistent state.
+So this leaves us in a wierd spot, because what we're shipping in the product behind `PublishTrimmed` is somewhat of an inconsistent state.
 - To optimize for size at the cost of startup, we should remove ready-to-run and deliver a significant size reduction (~6mb more)
 - To optimize for startup and size where possible, we should apply ready-to-run to everything and accept a paltry size reduction (~10mb).
 
