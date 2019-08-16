@@ -2,4 +2,9 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Can describe roots to the linker -->
+    <TrimmerRootDescriptor Include="Linker.xml" Condition="'$(LinkAggressively)' == 'true'"/>
+  </ItemGroup>
 </Project>
