@@ -1,0 +1,24 @@
+<Project>
+  <Target Name="SetAggressiveLinkingDefaults" AfterTargets="_SetILLinkDefaults" Condition="'$(LinkAggressively)' == 'true'">
+    <ItemGroup>
+      <TrimmerRootAssembly Remove="@(TrimmerRootAssembly)" />
+      <TrimmerRootAssembly Include="@(IntermediateAssembly)" />
+      <_ManagedAssembliesToLink Update="@(_ManagedAssembliesToLink)" Condition="'%(_ManagedAssembliesToLink.action)' != 'link'">
+        <action>link</action>
+      </_ManagedAssembliesToLink>
+    </ItemGroup>
+    <Message Text="Linker has gone aggro. Yeeting EVERYTHING." Importance="high" />
+  </Target>
+
+  <Target 
+    Name="SetLessAggressiveLinkingDefaults" 
+    AfterTargets="_SetILLinkDefaults" 
+    Condition="'$(LinkAggressively)' != 'true' and '$(LinkAwayReadyToRun)' == 'true'">
+    <ItemGroup>
+      <_ManagedAssembliesToLink Update="@(_ManagedAssembliesToLink)" Condition="'%(_ManagedAssembliesToLink.action)' != 'link'">
+        <action>addbypassngen</action>
+      </_ManagedAssembliesToLink>
+    </ItemGroup>
+    <Message Text="Linker is pretty chill. Yeeting a unused assemblies and all ready-to-run." Importance="high" />
+  </Target>
+</Project>

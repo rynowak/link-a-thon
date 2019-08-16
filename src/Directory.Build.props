@@ -1,0 +1,27 @@
+<Project>
+  <PropertyGroup>
+    <!-- runs the linker during publish -->
+    <PublishTrimmed>true</PublishTrimmed>
+
+    <!--
+      produces a log for https://github.com/mono/linker/blob/master/src/analyzer/README.md
+
+      -->
+    <_ExtraTrimmerArgs>--dump-dependencies -b true $(_ExtraTrimmerArgs)</_ExtraTrimmerArgs>
+
+    <!--
+      set this to true to have the linker go all aggro
+    -->
+    <LinkAggressively>false</LinkAggressively>
+
+    <!--
+      set this to true to have the linker remove r2r - mutually exclusive with LinkAggressively
+    -->
+    <LinkAwayReadyToRun>false</LinkAwayReadyToRun>
+
+    <!--
+      Yeah boiiiiiiiiiii.
+    -->
+    <PublishReadyToRun>false</PublishReadyToRun>
+  </PropertyGroup>
+</Project>
