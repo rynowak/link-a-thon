@@ -73,7 +73,7 @@ if ($time)
         $proc = Start-Process -FilePath $AppPath -PassThru -NoNewWindow -RedirectStandardOutput '.\NUL'
 
         Write-Debug "Making a request to $url"
-        curl $url | Out-Null
+        Invoke-WebRequest $url | Out-Null
 
         $proc.Refresh()
         $mb = [int]$proc.WorkingSet / 1MB
