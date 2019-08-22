@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- See: https://github.com/mono/linker/blob/master/src/linker/README.md#syntax-of-xml-descriptor -->
 <linker>
+  <assembly fullname="System.Private.CoreLib">
+    <type fullname="System.Object" />
+  </assembly>
 
   <assembly fullname="ApiTemplate">
     <type fullname="ApiTemplate.Startup" />

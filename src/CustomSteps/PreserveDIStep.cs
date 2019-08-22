@@ -13,11 +13,6 @@ namespace CustomSteps
     {
         public void Process(LinkContext context)
         {
-            if (Environment.GetEnvironmentVariable("DEBUG_STEP") == "1")
-            {
-                while (!System.Diagnostics.Debugger.IsAttached) ;
-            }
-
             var asms = context
                 .GetAssemblies()
                 .Where(a => ReferencesDI(a));

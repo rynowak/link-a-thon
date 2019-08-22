@@ -1,18 +1,43 @@
 <Project>
-  <Target Name="CopyLinkerLocal" BeforeTargets="_RunILLink">
+
+  <ItemGroup>
+    <ProjectReference Include="..\CustomSteps\CustomSteps.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UseCustomStepPreserveDI)' == 'true'">
+    <ILLinkCustomStep Include="CustomSteps.PreserveDIStep, CustomSteps, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <AssemblyPath>$(MSBuildThisFileDirectory)CustomSteps\bin\$(Configuration)\netcoreapp2.0\CustomSteps.dll</AssemblyPath>
+      <PdbPath>$(MSBuildThisFileDirectory)CustomSteps\bin\$(Configuration)\netcoreapp2.0\CustomSteps.pdb</PdbPath>
+      <BeforeStep>MarkStep</BeforeStep>
+    </ILLinkCustomStep>
+  </ItemGroup>
+
+  <Target Name="CopyLinkerLocal" BeforeTargets="CopyFilesToOutputDirectory">
     <PropertyGroup>
-      <DefaultLinkerLocation>$([System.IO.Path]::GetDirectoryName($(ILLinkTasksAssembly)))\</DefaultLinkerLocation>
+      <DefaultLinkerLocation>$(_ILLinkTasksDirectoryRoot)netcoreapp2.0\</DefaultLinkerLocation>
       <TempLinkerLocation>$(IntermediateOutputPath)linker\</TempLinkerLocation>
       <ILLinkPath>$(TempLinkerLocation)illink.dll</ILLinkPath>
     </PropertyGroup>
 
     <ItemGroup>
-      <ILLinkFiles Include="$(DefaultLinkerLocation)**\*" />
+      <ILLinkFiles Include="$(DefaultLinkerLocation)**\*" Exclude="$(DefaultLinkerLocation)**\*.deps.json" />
     </ItemGroup>
 
     <Error Text="Could not find linker at $(DefaultLinkerLocation)" Condition="!Exists('$(DefaultLinkerLocation)illink.dll')" />
-    <Copy SourceFiles="@(ILLinkFiles)" DestinationFolder="$(TempLinkerLocation)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ILLinkFiles);@(ILLinkCustomStep->'%(AssemblyPath)');@(ILLinkCustomStep->'%(PdbPath)')" DestinationFolder="$(TempLinkerLocation)" SkipUnchangedFiles="true" />
     <Error Text="Linker was not copied to $(TempLinkerLocation)" Condition="!Exists('$(ILLinkPath)')" />
+  </Target>
+
+  <Target Name="SetCustomStepArgs" BeforeTargets="_RunILLink" Condition="'@(ILLinkCustomStep->Count())' != '0'">
+    <ItemGroup>
+      <_ILLinkCustomStepTransform Include="@(ILLinkCustomStep->'%(Identity))')" Condition="'%(ILLinkCustomStep.BeforeStep)'=='' AND '%(ILLinkCustomStep.AfterStep)'==''" />
+      <_ILLinkCustomStepTransform Include="@(ILLinkCustomStep->'%(Identity):%(BeforeStep)')" Condition="'%(ILLinkCustomStep.BeforeStep)'!=''" />
+      <_ILLinkCustomStepTransform Include="@(ILLinkCustomStep->'%(AfterStep):%(Identity)')" Condition="'%(ILLinkCustomStep.AfterStep)'!=''" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <_ExtraTrimmerArgs>--custom-step @(_ILLinkCustomStepTransform ->'&quot;%(Identity)&quot;', ' --custom-step ') $(_ExtraTrimmerArgs)</_ExtraTrimmerArgs>
+    </PropertyGroup>
   </Target>
 
   <!--
@@ -46,9 +71,10 @@
             ExtraArgs="$(_ExtraTrimmerArgs)"
             ToolExe="$(_DotNetHostFileName)"
             ToolPath="$(_DotNetHostDirectory)" 
-            ILLinkPath="$(ILLinkPath)" />
+            ILLinkPath="$(ILLinkPath)"
+            StandardOutputImportance="High">
+    </ILLink>
 
-     <Touch Files="$(_LinkSemaphore)" AlwaysCreate="true" />
-
+    <Touch Files="$(_LinkSemaphore)" AlwaysCreate="true" />
   </Target>
 </Project>

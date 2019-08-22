@@ -1,11 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
+  
+  <Import Project="Sdk.props" Sdk="ILLink.Tasks" />
+  
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+    <DefaultLinkerLocation>$(_ILLinkTasksDirectoryRoot)netcoreapp2.0\</DefaultLinkerLocation>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="..\linker\illink_Release\netcoreapp2.0\*.dll" />
+    <Reference Include="$(DefaultLinkerLocation)illink.dll" />
+    <Reference Include="$(DefaultLinkerLocation)Mono.Cecil.dll" />
   </ItemGroup>
 
 </Project>
