@@ -2,10 +2,10 @@
 <!-- See: https://github.com/mono/linker/blob/master/src/linker/README.md#syntax-of-xml-descriptor -->
 <linker>
 
-  <assembly fullname="Template">
-    <type fullname="Template.Startup" />
-    <type fullname="Template.Controllers.WeatherForecastController" />
-    <type fullname="Template.WeatherForecast" />
+  <assembly fullname="ApiTemplate">
+    <type fullname="ApiTemplate.Startup" />
+    <type fullname="ApiTemplate.Controllers.WeatherForecastController" />
+    <type fullname="ApiTemplate.WeatherForecast" />
   </assembly>
 
   <assembly fullname="Microsoft.Extensions.Hosting">

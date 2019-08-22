@@ -1,6 +1,6 @@
 using System;
 
-namespace Template
+namespace ApiTemplate
 {
     public class WeatherForecast
     {
