@@ -5,6 +5,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
+    <UseCustomStepPreserveDI>true</UseCustomStepPreserveDI>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,17 +20,6 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ILLinkCustomStep Include="..\CustomSteps\bin\$(Configuration)\netcoreapp2.0\CustomSteps.dll">
-      <StepName>CustomSteps.PreserveDIStep</StepName>
-      <BeforeStep>MarkStep</BeforeStep>
-    </ILLinkCustomStep>
-    <ILLinkCustomStep Include="..\CustomSteps\bin\$(Configuration)\netcoreapp2.0\CustomSteps.dll">
-      <StepName>CustomSteps.PreserveControllerTypeStep</StepName>
-      <BeforeStep>MarkStep</BeforeStep>
-    </ILLinkCustomStep>
   </ItemGroup>
 
   <!-- Don't simplify this. We need to override stuff defined in the SDK. -->
