@@ -1,0 +1,54 @@
+<Project>
+  <Target Name="CopyLinkerLocal" BeforeTargets="_RunILLink">
+    <PropertyGroup>
+      <DefaultLinkerLocation>$([System.IO.Path]::GetDirectoryName($(ILLinkTasksAssembly)))\</DefaultLinkerLocation>
+      <TempLinkerLocation>$(IntermediateOutputPath)linker\</TempLinkerLocation>
+      <ILLinkPath>$(TempLinkerLocation)illink.dll</ILLinkPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ILLinkFiles Include="$(DefaultLinkerLocation)**\*" />
+    </ItemGroup>
+
+    <Error Text="Could not find linker at $(DefaultLinkerLocation)" Condition="!Exists('$(DefaultLinkerLocation)illink.dll')" />
+    <Copy SourceFiles="@(ILLinkFiles)" DestinationFolder="$(TempLinkerLocation)" SkipUnchangedFiles="true" />
+    <Error Text="Linker was not copied to $(TempLinkerLocation)" Condition="!Exists('$(ILLinkPath)')" />
+  </Target>
+
+  <!--
+    ============================================================
+                     _RunILLink
+
+    Execute the linker. This target runs incrementally, only executing
+    if the output semaphore file is out of date with respect to the inputs.
+    ============================================================
+  -->
+  <UsingTask TaskName="ILLink" AssemblyFile="$(ILLinkTasksAssembly)" />
+  <Target Name="_RunILLink"
+          DependsOnTargets="_ComputeManagedAssembliesToLink;_SetILLinkDefaults"
+          Inputs="$(MSBuildAllProjects);@(_ManagedAssembliesToLink);@(TrimmerRootDescriptor);@(ReferencePath)"
+          Outputs="$(_LinkSemaphore)">
+
+    <!-- When running from Desktop MSBuild, DOTNET_HOST_PATH is not set.
+         In this case, explicitly specify the path to the dotnet host. -->
+    <PropertyGroup Condition=" '$(DOTNET_HOST_PATH)' == '' ">
+      <_DotNetHostDirectory>$(NetCoreRoot)</_DotNetHostDirectory>
+      <_DotNetHostFileName>dotnet</_DotNetHostFileName>
+      <_DotNetHostFileName Condition=" '$(OS)' == 'Windows_NT' ">dotnet.exe</_DotNetHostFileName>
+    </PropertyGroup>
+
+    <Delete Files="@(_LinkedResolvedFileToPublishCandidates)" />
+    <ILLink AssemblyPaths="@(_ManagedAssembliesToLink)"
+            ReferenceAssemblyPaths="@(ReferencePath)"
+            RootAssemblyNames="@(TrimmerRootAssembly)"
+            RootDescriptorFiles="@(TrimmerRootDescriptor)"
+            OutputDirectory="$(IntermediateLinkDir)"
+            ExtraArgs="$(_ExtraTrimmerArgs)"
+            ToolExe="$(_DotNetHostFileName)"
+            ToolPath="$(_DotNetHostDirectory)" 
+            ILLinkPath="$(ILLinkPath)" />
+
+     <Touch Files="$(_LinkSemaphore)" AlwaysCreate="true" />
+
+  </Target>
+</Project>

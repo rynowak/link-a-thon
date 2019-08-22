@@ -1,5 +1,7 @@
 ﻿<Project>
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk.Web" />
+
+  <!-- Don't simplify this. We need to override stuff defined in the SDK. -->
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
@@ -28,15 +30,10 @@
       <StepName>CustomSteps.PreserveControllerTypeStep</StepName>
       <BeforeStep>MarkStep</BeforeStep>
     </ILLinkCustomStep>
-    <!--
-      Don't run this. It's broken xD
-    <ILLinkCustomStep Include="..\CustomSteps\bin\$(Configuration)\netcoreapp2.0\CustomSteps.dll">
-      <StepName>CustomSteps.ControllerRegistrationStep</StepName>
-      <AfterStep>MarkStep</AfterStep>
-    </ILLinkCustomStep>
-    -->
   </ItemGroup>
 
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.Web" />
-  <Import Project="..\linker\Custom.Linker.targets" />
+  <!-- Don't simplify this. We need to override stuff defined in the SDK. -->
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="$(CustomLinkerStepsTargetsPath)" />
+
 </Project>

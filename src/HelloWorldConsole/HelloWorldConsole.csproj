@@ -1,8 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
+
+  <!-- Don't simplify this. We need to override stuff defined in the SDK. -->
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
+
+  <!-- Don't simplify this. We need to override stuff defined in the SDK. -->
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="$(CustomLinkerStepsTargetsPath)" />
 
 </Project>

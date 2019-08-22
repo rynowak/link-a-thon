@@ -23,5 +23,7 @@
       Yeah boiiiiiiiiiii.
     -->
     <PublishReadyToRun>false</PublishReadyToRun>
+
+    <CustomLinkerStepsTargetsPath>$(MSBuildThisFileDirectory)CustomLinkerSteps.targets</CustomLinkerStepsTargetsPath>
   </PropertyGroup>
 </Project>
