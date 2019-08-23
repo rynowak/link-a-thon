@@ -5,16 +5,28 @@ namespace CustomSteps
 {
     public abstract class MetadataWalker
     {
+        protected AssemblyDefinition CurrentAssembly { get; private set; }
+
+        protected ModuleDefinition CurrentModule { get; private set; }
+
+        protected TypeDefinition CurrentType { get; private set; }
+
+        protected MethodDefinition CurrentMethod { get; private set; }
+
         protected virtual void WalkAssembly(AssemblyDefinition assembly)
         {
             if (VisitAssembly(assembly))
             {
+                CurrentAssembly = assembly;
+
                 WalkCustomAttributes(assembly);
 
                 foreach (var module in assembly.Modules)
                 {
                     WalkModule(module);
                 }
+
+                CurrentAssembly = null;
             }
         }
 
@@ -22,12 +34,16 @@ namespace CustomSteps
         {
             if (VisitModule(module))
             {
+                CurrentModule = module;
+
                 WalkCustomAttributes(module);
 
                 foreach (var type in module.Types)
                 {
                     WalkType(type);
                 }
+
+                CurrentModule = null;
             }
         }
 
@@ -35,6 +51,8 @@ namespace CustomSteps
         {
             if (VisitType(type))
             {
+                CurrentType = type;
+
                 WalkCustomAttributes(type);
 
                 foreach (var nested in type.NestedTypes)
@@ -61,6 +79,8 @@ namespace CustomSteps
                 {
                     WalkEvent(evt);
                 }
+
+                CurrentType = type;
             }
         }
 
@@ -86,6 +106,8 @@ namespace CustomSteps
         {
             if (VisitMethod(method))
             {
+                CurrentMethod = method;
+
                 WalkCustomAttributes(method);
 
                 foreach (var param in method.Parameters)
@@ -97,6 +119,8 @@ namespace CustomSteps
                 {
                     WalkMethodBody(method.Body);
                 }
+
+                CurrentMethod = null;
             }
         }
 

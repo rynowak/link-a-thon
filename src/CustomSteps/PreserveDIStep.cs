@@ -36,6 +36,8 @@ namespace CustomSteps
                 _context = context;
             }
 
+            public bool CaptureTypeTokens { get; set; }
+
             public void Walk(IEnumerable<AssemblyDefinition> asms)
             {
                 foreach (var asm in asms)
@@ -44,42 +46,48 @@ namespace CustomSteps
                 }
             }
 
-            protected override bool VisitMethod(MethodDefinition method)
+            protected override void WalkMethodBody(Mono.Cecil.Cil.MethodBody body)
             {
-                if (method.Name == "CreateServiceProvider")
+                if (body.Method.Name == "AddConfiguration" && body.Method.DeclaringType.Name == "LoggingBuilderConfigurationExtensions")
                 {
                     Console.WriteLine();
                 }
 
-                return base.VisitMethod(method);
+                CaptureTypeTokens = false;
+                base.WalkMethodBody(body);
+
+                if (CaptureTypeTokens)
+                {
+                    for (var i = 0; i < body.Instructions.Count; i++)
+                    {
+                        var instruction = body.Instructions[i];
+                        if (instruction.OpCode == OpCodes.Ldtoken && instruction.Operand is TypeReference type)
+                        {
+                            PreserveConstructors(type, "typeof()");
+                        }
+                    }
+                }
             }
 
             protected override bool VisitInstruction(Instruction instruction)
             {
-                if (instruction.Operand is GenericInstanceMethod method && IsDIMethod(method))
+                var method = instruction.Operand as MethodReference;
+                if (method != null && IsDIMethod(method))
                 {
-                    for (var i = 0; i < method.GenericArguments.Count; i++)
+                    if (method is GenericInstanceMethod generic)
                     {
-                        var type = method.GenericArguments[i].Resolve();
-                        if (type == null || !type.IsClass)
+                        // This is a case like services.TryAddSingleton<TService, TImpl>();
+                        for (var i = 0; i < generic.GenericArguments.Count; i++)
                         {
-                            continue;
+                            PreserveConstructors(generic.GenericArguments[i], method.ToString());
                         }
-
-                        foreach (var methodOnType in type.GetMethods())
-                        {
-                            var resolved = methodOnType.Resolve();
-                            if (resolved == null)
-                            {
-                                continue;
-                            }
-
-                            Console.WriteLine($"Marking {resolved} as instantiated because of {method}.");
-                            _context.Annotations.Mark(resolved);
-                            _context.Annotations.MarkIndirectlyCalledMethod(resolved);
-                            _context.Annotations.SetAction(resolved, MethodAction.Parse);
-                            _context.Annotations.AddPreservedMethod(type, resolved);
-                        }
+                    }
+                    else if (method != null && method.Parameters.Any(p => p.ParameterType.FullName == "System.Type"))
+                    {
+                        // This is a case like services.TryAddSingleton(typeof(TService), typeof(TImpl));
+                        //
+                        // We want to grovel all typeof(T) usages in this method.
+                        CaptureTypeTokens = true;
                     }
                 }
 
@@ -87,6 +95,30 @@ namespace CustomSteps
             }
 
             private bool IsDIMethod(MethodReference method) => method.DeclaringType.FullName.StartsWith("Microsoft.Extensions.DependencyInjection", StringComparison.Ordinal);
+
+            private void PreserveConstructors(TypeReference typeReference, string reason)
+            {
+                var type = typeReference.Resolve();
+                if (type == null || !type.IsClass)
+                {
+                    return;
+                }
+
+                foreach (var method in type.GetMethods())
+                {
+                    var resolved = method.Resolve();
+                    if (resolved == null || !resolved.IsConstructor)
+                    {
+                        continue;
+                    }
+
+                    Console.WriteLine($"Marking {resolved} as instantiated because of {reason}.");
+                    _context.Annotations.Mark(resolved);
+                    _context.Annotations.MarkIndirectlyCalledMethod(resolved);
+                    _context.Annotations.SetAction(resolved, MethodAction.Parse);
+                    _context.Annotations.AddPreservedMethod(type, resolved);
+                }
+            }
         }
     }
 }
