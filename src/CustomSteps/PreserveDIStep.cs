@@ -30,7 +30,6 @@ namespace CustomSteps
         private class PreserveDIWalker : MetadataWalker
         {
             private readonly LinkContext _context;
-            private MethodDefinition _currentMethod;
 
             public PreserveDIWalker(LinkContext context)
             {
@@ -45,26 +44,49 @@ namespace CustomSteps
                 }
             }
 
-            protected override void WalkMethod(MethodDefinition method)
+            protected override bool VisitMethod(MethodDefinition method)
             {
-                if (method.Parameters.Any(p => p.ParameterType.FullName.Equals("Microsoft.Extensions.DependencyInjection.IServiceCollection")))
+                if (method.Name == "CreateServiceProvider")
                 {
-                    _currentMethod = method;
-                    base.WalkMethod(method);
-                    _currentMethod = null;
+                    Console.WriteLine();
                 }
+
+                return base.VisitMethod(method);
             }
 
             protected override bool VisitInstruction(Instruction instruction)
             {
-                if (instruction.Operand is MethodReference methodRef && IsDIMethod(methodRef))
+                if (instruction.Operand is GenericInstanceMethod method && IsDIMethod(method))
                 {
-                    Console.WriteLine($"Method Call in {_currentMethod.DeclaringType.FullName}.{_currentMethod.Name}: {methodRef.DeclaringType.FullName}.{methodRef.Name}");
+                    for (var i = 0; i < method.GenericArguments.Count; i++)
+                    {
+                        var type = method.GenericArguments[i].Resolve();
+                        if (type == null || !type.IsClass)
+                        {
+                            continue;
+                        }
+
+                        foreach (var methodOnType in type.GetMethods())
+                        {
+                            var resolved = methodOnType.Resolve();
+                            if (resolved == null)
+                            {
+                                continue;
+                            }
+
+                            Console.WriteLine($"Marking {resolved} as instantiated because of {method}.");
+                            _context.Annotations.Mark(resolved);
+                            _context.Annotations.MarkIndirectlyCalledMethod(resolved);
+                            _context.Annotations.SetAction(resolved, MethodAction.Parse);
+                            _context.Annotations.AddPreservedMethod(type, resolved);
+                        }
+                    }
                 }
+
                 return true;
             }
 
-            private bool IsDIMethod(MethodReference methodRef) => string.Equals(methodRef.DeclaringType.FullName, "Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions");
+            private bool IsDIMethod(MethodReference method) => method.DeclaringType.FullName.StartsWith("Microsoft.Extensions.DependencyInjection", StringComparison.Ordinal);
         }
     }
 }
