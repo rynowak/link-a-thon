@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -11,9 +12,21 @@ namespace ApiTemplate
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            if (!args.Contains("--time"))
+            {
+                CreateHostBuilder(args).Build().Run();
+                return;
+            }
+
+            using (var host = CreateHostBuilder(args).Start())
+            {
+                var client = new HttpClient();
+                var response = await client.GetAsync("https://localhost:5001/WeatherForecast");
+                response.EnsureSuccessStatusCode();
+                Console.WriteLine("Completed At: ", DateTime.Now.Ticks);
+            }
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
