@@ -23,7 +23,7 @@ namespace ApiTemplate
             using (var host = CreateHostBuilder(args).Start())
             {
                 var client = new HttpClient();
-                var response = await client.GetAsync("https://localhost:5001/WeatherForecast");
+                var response = await client.GetAsync("http://localhost:5000/WeatherForecast");
                 response.EnsureSuccessStatusCode();
                 Console.WriteLine("Completed At: ", DateTime.Now.Ticks);
             }
