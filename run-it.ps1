@@ -175,3 +175,9 @@ else
 {
     dotnet $app
 }
+
+if ($trace)
+{
+    & sudo kill ((Get-Process -Name 'perf').Id)
+    Wait-Process -Id "$perfcollect_pid"
+}
