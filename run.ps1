@@ -1,4 +1,4 @@
-#!/bin/env pwsh
+#!/usr/bin/env pwsh
 
 # This is the script that we are using to collect size/startup numbers
 # for the small/fast/single exe prototype.

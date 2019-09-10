@@ -44,7 +44,7 @@
          polluting it. makes it easier to submit the project to the
          benchmarks infrastructure without uploading
          intermediates. -->
-    <IntermediatesDir>$(MSBuildThisFileDirectory)intermediates/$(MSBuildProjectName)/</IntermediatesDir>
+    <IntermediatesDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../intermediates/$(MSBuildProjectName)/'))</IntermediatesDir>
     <!-- option to output intermediate files into the publish
          directory as well for easy retrieval from aspnet benchmark
          infra -->
@@ -57,7 +57,6 @@
        intermediate directory before running the bundler to produce
        the single exe in the final publish directory. -->
   <PropertyGroup Condition=" '$(UseStaticHost)' == 'true' ">
-    <SingleFilePublishDir>$([MSBuild]::EnsureTrailingSlash('$(PublishDir)'))</SingleFilePublishDir>
     <MultiFilePublishDir>$(IntermediatesDir)/multifile-publish/</MultiFilePublishDir>
   </PropertyGroup>
 

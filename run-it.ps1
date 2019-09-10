@@ -7,6 +7,10 @@ param(
     [switch] $trimr2r,
     [switch] $aggro,
     [switch] $r2r,
+    # for the purposes of this prototype, singleFile means the
+    # experimental statically-linked host bundle (with custom msbuild
+    # logic), not the 3.0 feature that extracts files to disk (under
+    # the PublishSingleFile switch)
     [switch] $singleFile,
     [switch] $customBuilder,
     [switch] $noMvc,
@@ -46,7 +50,8 @@ if ($trace)
     }
 }
 
-$publish_dir = Join-Path "bin" "Release" | Join-Path -ChildPath "netcoreapp3.0" | Join-Path -ChildPath "$rid" | Join-Path -ChildPath "publish"
+$app_intermediates_dir = Join-Path "$PSScriptRoot" "intermediates" | Join-Path -ChildPath "$appname"
+$publish_dir = Join-Path "$app_intermediates_dir" "bin" | Join-Path -ChildPath "Release" | Join-Path -ChildPath "netcoreapp3.0" | Join-Path -ChildPath "$rid" | Join-Path -ChildPath "publish"
 if (Test-Path $publish_dir)
 {
     Write-Debug "Deleting $publish_dir"
@@ -70,9 +75,15 @@ if ($noMvc)
 }
 
 # Do not try to simplify the $defines part of this. Please.
-& dotnet publish -c Release -r $rid /p:PublishTrimmed=$trim /p:LinkAggressively=$aggro /p:LinkAwayReadyToRun=$trimr2r /p:PublishReadyToRun=$r2r /p:PublishSingleFile=$singleFile "/p:DefineConstants=\`"$defines\`"" /bl
+& dotnet publish -c Release -r $rid /bl `
+  /p:PublishTrimmed=$trim `
+  /p:LinkAggressively=$aggro `
+  /p:LinkAwayReadyToRun=$trimr2r `
+  /p:PublishReadyToRun=$r2r `
+  /p:UseStaticHost=$singleFile `
+  "/p:DefineConstants=\`"$defines\`""
 
-Write-Host ("Size is {0:N2} MB" -f ((Get-ChildItem . -Recurse | Measure-Object -Property Length -Sum -ErrorAction Stop).Sum / 1MB))
+Write-Host ("Size is {0:N2} MB" -f ((Get-ChildItem "$publish_dir" -Recurse | Measure-Object -Property Length -Sum -ErrorAction Stop).Sum / 1MB))
 
 $app_path = Join-Path "$publish_dir" "$appname"
 if ($IsLinux -or $IsMacOS)
@@ -106,7 +117,16 @@ if ($trace)
 
     # 2. copy crossgen to the publish directory (used to resolve R2R symbols)
 
-    $deps_json = Join-Path "$publish_dir" "$appname.deps.json"
+    if ($singleFile)
+    {
+        # there's no deps.json alongside the single executable - look in the intermediates instead
+        Write-Host "using singlefile"
+        $deps_json = Join-Path "$app_intermediates_dir" "multifile-publish" "$appname.deps.json"
+    }
+    else
+    {
+        $deps_json = Join-Path "$publish_dir" "$appname.deps.json"
+    }
     if (-not (Test-Path $deps_json))
     {
         Write-Error "deps.json not found at $deps_json"
@@ -160,7 +180,8 @@ if ($time)
     {
         Write-Debug "Starting $app"
         $result = Measure-Command {
-            $proc = Start-Process -FilePath $app_path -ArgumentList @("--time") -PassThru -NoNewWindow -RedirectStandardOutput '.\NUL'
+            $proc = Start-Process -FilePath $app_path -ArgumentList @("--time") -PassThru -NoNewWindow
+            $proc = Start-Process -FilePath $app_path -ArgumentList $app_args -PassThru -NoNewWindow
             $proc.WaitForExit()
         }
 
@@ -178,7 +199,7 @@ if ($time)
         # Measure working set after startup and one request
         Write-Debug "Starting $app"
         $proc = Start-Process -FilePath $app_path -PassThru -NoNewWindow -RedirectStandardOutput '.\NUL'
-
+        Start-Sleep -Seconds 1
         Write-Debug "Making a request to $url"
         Invoke-WebRequest $url | Out-Null
 

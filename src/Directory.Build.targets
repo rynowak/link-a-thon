@@ -1,5 +1,14 @@
 <Project>
 
+  <!-- This must be set after SDK targets, which set PublishDir. -->
+  <!-- When using the static host, publish multi-file into an
+       intermediate directory before running the bundler to produce
+       the single exe in the final publish directory. -->
+  <PropertyGroup Condition=" '$(UseStaticHost)' == 'true' ">
+    <SingleFilePublishDir>$([MSBuild]::EnsureTrailingSlash('$(PublishDir)'))</SingleFilePublishDir>
+  </PropertyGroup>
+
+
   <Target Name="SetAggressiveLinkingDefaults"
           AfterTargets="_SetILLinkDefaults"
           Condition="'$(LinkAggressively)' == 'true'">
