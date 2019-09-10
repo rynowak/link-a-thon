@@ -1,0 +1,4 @@
+<Project>
+  <!-- Prevent importing single exe build props, which don't apply to
+       the custom steps. -->
+</Project>

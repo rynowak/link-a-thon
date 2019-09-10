@@ -1,0 +1,33 @@
+<Project>
+  
+  <!-- These targets will use the locally-built crossgen, which doesn't take /JITPath -->
+  <Target Name="UseLocalCrossgen"
+          AfterTargets="_PrepareForReadyToRunCompilation">
+    <ItemGroup>
+      <_CrossgenTool Remove="@(_CrossgenTool)" />
+      <_CrossgenTool Include="$(CoreClrBinariesDir)crossgen" />
+    </ItemGroup>
+  </Target>
+
+  <!-- This overrides the SDK's _CreateR2RImages target, so this file
+       must be imported after the SDK targets. -->
+  <Target Name="_CreateR2RImages">
+    <!-- Work around non-assemblies in the input that are normally filtered out by the ReadyToRun task -->
+    <ItemGroup>
+      <_ReadyToRunImplementationAssemblies Remove="@(_ReadyToRunImplementationAssemblies)"
+                                           Condition=" '%(Extension)' != '.dll' " />
+    </ItemGroup>
+    <!-- Necessary when sending to perflab - the permissions are not preserved when zipping/unzipping. -->
+    <Exec Command="chmod +x @(_CrossgenTool)" />
+    <PropertyGroup>
+      <CrossgenCommand>@(_CrossgenTool) /nologo /MissingDependenciesOK</CrossgenCommand>
+      <!-- crossgen fails if System.Private.CoreLib isn't a fully-qualified path -->
+      <CrossgenCommand>$(CrossgenCommand) /r @(_ReadyToRunImplementationAssemblies->'%(FullPath)', ' /r ')</CrossgenCommand>
+    </PropertyGroup>
+    <ItemGroup>
+      <CrossgenCommands Include="$(CrossgenCommand) /out %(_ReadyToRunCompileList.OutputR2RImage) %(_ReadyToRunCompileList.Identity)" />
+    </ItemGroup>
+    <Exec Command="%(CrossgenCommands.Identity)" />
+  </Target>
+
+</Project>

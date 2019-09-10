@@ -1,29 +1,71 @@
 <Project>
+  <!-- These defaults will publish a self-contained, aggressively
+       linked, R2R, single-file application. -->
   <PropertyGroup>
-    <!-- runs the linker during publish -->
-    <PublishTrimmed>false</PublishTrimmed>
+    <SelfContained Condition=" '$(SelfContained)' == '' ">true</SelfContained>
+
 
     <!--
-      produces a log for https://github.com/mono/linker/blob/master/src/analyzer/README.md
-
-      -->
+        Linker options
+    -->
+    <!-- Run the linker during publish -->
+    <PublishTrimmed Condition=" '$(PublishTrimmed)' == '' ">true</PublishTrimmed>
+    <!-- Have the linker go all aggro -->
+    <LinkAggressively Condition=" '$(LinkAggressively)' == '' ">true</LinkAggressively>
+    <!-- Set this to true to have the linker remove r2r - mutually exclusive with LinkAggressively -->
+    <LinkAwayReadyToRun Condition=" '$(LinkAwayReadyToRun)' == '' ">false</LinkAwayReadyToRun>
+    <!-- Use an experimentally-determined publish exclude list that
+         still results in a working app -->
+    <UsePublishFilterList Condition=" '$(UsePublishFilterList)' == '' ">true</UsePublishFilterList>
+    <!-- Produce a log for
+         https://github.com/mono/linker/blob/master/src/analyzer/README.md
+         -->
     <_ExtraTrimmerArgs>--dump-dependencies -b true $(_ExtraTrimmerArgs)</_ExtraTrimmerArgs>
-
-    <!--
-      set this to true to have the linker go all aggro
-    -->
-    <LinkAggressively>false</LinkAggressively>
-
-    <!--
-      set this to true to have the linker remove r2r - mutually exclusive with LinkAggressively
-    -->
-    <LinkAwayReadyToRun>false</LinkAwayReadyToRun>
-
-    <!--
-      Yeah boiiiiiiiiiii.
-    -->
-    <PublishReadyToRun>false</PublishReadyToRun>
-
     <CustomLinkerStepsTargetsPath>$(MSBuildThisFileDirectory)CustomLinkerSteps.targets</CustomLinkerStepsTargetsPath>
+
+
+    <!--
+        Yeah boiiiiiiiiiii.
+    -->
+    <PublishReadyToRun Condition=" '$(PublishReadyToRun)' == '' ">true</PublishReadyToRun>
+    <CustomR2RLogicTargetsPath>$(MSBuildThisFileDirectory)CustomR2RLogic.targets</CustomR2RLogicTargetsPath>
+
+
+    <!--
+        Embed everything into a single-file statically-linked host
+    -->
+    <UseStaticHost Condition=" '$(UseStaticHost)' == '' ">true</UseStaticHost>
+    <!-- Coreclr binaries necessary to produce the static host -->
+    <CoreClrBinariesDir Condition=" '$(CoreClrBinariesDir)' == '' " >$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)coreclrbin/'))</CoreClrBinariesDir>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- place intermediates outside of the project folder to avoid
+         polluting it. makes it easier to submit the project to the
+         benchmarks infrastructure without uploading
+         intermediates. -->
+    <IntermediatesDir>$(MSBuildThisFileDirectory)intermediates/$(MSBuildProjectName)/</IntermediatesDir>
+    <!-- option to output intermediate files into the publish
+         directory as well for easy retrieval from aspnet benchmark
+         infra -->
+    <IntermediatesDir Condition=" '$(PublishIntermediates)' == 'true' ">$(PublishDir)</IntermediatesDir>
+    <BaseIntermediateOutputPath>$(IntermediatesDir)obj</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(IntermediatesDir)/bin</BaseOutputPath>
+  </PropertyGroup>
+
+  <!-- When using the static host, publish multi-file into an
+       intermediate directory before running the bundler to produce
+       the single exe in the final publish directory. -->
+  <PropertyGroup Condition=" '$(UseStaticHost)' == 'true' ">
+    <SingleFilePublishDir>$([MSBuild]::EnsureTrailingSlash('$(PublishDir)'))</SingleFilePublishDir>
+    <MultiFilePublishDir>$(IntermediatesDir)/multifile-publish/</MultiFilePublishDir>
+  </PropertyGroup>
+
+  <!-- detect current platform RID -->
+  <PropertyGroup Condition=" '$(SelfContained)' == 'true' ">
+    <RuntimeIdentifier Condition="'$([MSBuild]::IsOSPlatform(Windows))' == 'true'">win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$([MSBuild]::IsOSPlatform(Linux))' == 'true'">linux-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$([MSBuild]::IsOSPlatform(OSX))' == 'true'">osx-x64</RuntimeIdentifier>
+  </PropertyGroup>
+
 </Project>
