@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <!-- runs the linker during publish -->
-    <PublishTrimmed>true</PublishTrimmed>
+    <PublishTrimmed>false</PublishTrimmed>
 
     <!--
       produces a log for https://github.com/mono/linker/blob/master/src/analyzer/README.md
