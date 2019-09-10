@@ -15,7 +15,7 @@ param(
     [switch] $customBuilder,
     [switch] $noMvc,
     [switch] $time,
-    [string] $trace)
+    [switch] $trace)
 
 dotnet clean
 
@@ -43,9 +43,10 @@ if ($trace)
         Write-Error "tracing is only supported on linux"
         exit
     }
-    if (Test-Path "$trace.trace.zip")
+    $trace_name = "$appname.$(Get-Date -UFormat "%m-%d-%H-%M")"
+    if (Test-Path "$trace_name.zip")
     {
-        Write-Error "$trace.trace.zip already exists"
+        Write-Error "$trace_name.zip already exists"
         exit
     }
 }
@@ -163,7 +164,7 @@ if ($trace)
 
     $pid_file = & mktemp -u
     & mkfifo "$pid_file"
-    Start-Process sudo -ArgumentList @("sh", "-c", "`"echo `$`$ > `"$pid_file`"; exec $perfcollect collect $trace`"")
+    Start-Process sudo -ArgumentList @("sh", "-c", "`"echo `$`$ > `"$pid_file`"; exec $perfcollect collect $trace_name`"")
     $perfcollect_pid = & cat "$pid_file"
     Write-Host "perfcollect PID: $perfcollect_pid"
 
