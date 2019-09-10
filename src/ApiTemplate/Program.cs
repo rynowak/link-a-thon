@@ -46,7 +46,7 @@ namespace ApiTemplate
         {
             var host = CreateHostBuilder(args).Build();
             
-            #if CUSTOM_BUILDER
+            #if CUSTOM_BUILDER || NO_MVC
                 host.Services.GetRequiredService<IHostApplicationLifetime>().ApplicationStarted.Register(() =>
                 {
                     Console.WriteLine("Application started.");
@@ -66,6 +66,17 @@ namespace ApiTemplate
                     webBuilder.UseKestrel();
                     webBuilder.UseUrls("http://*:5000");
                     webBuilder.UseStartup<Startup>();
+                });
+
+#elif NO_MVC
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            new HostBuilder()
+                .ConfigureWebHost(webBuilder =>
+                {
+                    webBuilder.UseContentRoot(Directory.GetCurrentDirectory());
+                    webBuilder.UseKestrel();
+                    webBuilder.UseUrls("http://*:5000");
+                    webBuilder.UseStartup<StartupWithoutMvc>();
                 });
 #else
         public static IHostBuilder CreateHostBuilder(string[] args) =>

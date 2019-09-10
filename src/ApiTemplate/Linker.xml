@@ -7,6 +7,7 @@
 
   <assembly fullname="ApiTemplate">
     <type fullname="ApiTemplate.Startup" />
+    <type fullname="ApiTemplate.StartupWithoutMvc" />
     <type fullname="ApiTemplate.Controllers.WeatherForecastController" />
     <type fullname="ApiTemplate.WeatherForecast" />
   </assembly>
