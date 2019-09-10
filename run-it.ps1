@@ -182,7 +182,6 @@ if ($time)
         Write-Debug "Starting $app"
         $result = Measure-Command {
             $proc = Start-Process -FilePath $app_path -ArgumentList @("--time") -PassThru -NoNewWindow
-            $proc = Start-Process -FilePath $app_path -ArgumentList $app_args -PassThru -NoNewWindow
             $proc.WaitForExit()
         }
 

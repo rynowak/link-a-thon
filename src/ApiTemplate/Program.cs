@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+#if TIME
 using System.Diagnostics;
+#endif
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -36,16 +38,18 @@ namespace ApiTemplate
                 }
                 return;
             }
-
-            var host = CreateHostBuilder(args).Build();
+            else
+            {
+                var host = CreateHostBuilder(args).Build();
 
 #if CUSTOM_BUILDER
-            host.Services.GetRequiredService<IHostApplicationLifetime>().ApplicationStarted.Register(() =>
-            {
-                Console.WriteLine("Application started.");
-            });
+                host.Services.GetRequiredService<IHostApplicationLifetime>().ApplicationStarted.Register(() =>
+                {
+                    Console.WriteLine("Application started.");
+                });
 #endif
-            host.Run();
+                host.Run();
+            }
         }
 
 #else
