@@ -8,6 +8,7 @@ param(
     [switch] $aggro,
     [switch] $r2r,
     [switch] $singleFile,
+    [switch] $customBuilder,
     [switch] $time,
     [string] $trace)
 
@@ -19,11 +20,9 @@ if (Test-Path "obj")
     Remove-Item "obj" -r -for
 }
 
-if ($IsWindows)
-{
-    $rid = "win10-x64"
-}
-elseif ($IsMacOS)
+# PS-non-core doesn't define these variables - so assume windows
+$rid = "win10-x64"
+if ($IsMacOS)
 {
     $rid = "osx-x64"
 }
@@ -46,28 +45,44 @@ if ($trace)
     }
 }
 
-$publish_dir = Join-Path "bin" "Release" "netcoreapp3.0" "$rid" "publish"
+$publish_dir = Join-Path "bin" "Release" | Join-Path -ChildPath "netcoreapp3.0" | Join-Path -ChildPath "$rid" | Join-Path -ChildPath "publish"
 if (Test-Path $publish_dir)
 {
     Write-Debug "Deleting $publish_dir"
     Remove-Item $publish_dir -r -for
 }
 
-& dotnet publish -c Release -r $rid /p:PublishTrimmed=$trim /p:LinkAggressively=$aggro /p:LinkAwayReadyToRun=$trimr2r /p:PublishReadyToRun=$r2r /p:PublishSingleFile=$singleFile /bl
+$defines = ""
+if ($time)
+{
+    $defines += "TIME;"
+}
+
+if ($customBuilder)
+{
+    $defines += "CUSTOM_BUILDER;"
+}
+
+# Do not try to simplify the $defines part of this. Please.
+& dotnet publish -c Release -r $rid /p:PublishTrimmed=$trim /p:LinkAggressively=$aggro /p:LinkAwayReadyToRun=$trimr2r /p:PublishReadyToRun=$r2r /p:PublishSingleFile=$singleFile "/p:DefineConstants=\`"$defines\`"" /bl
 
 Write-Host ("Size is {0:N2} MB" -f ((Get-ChildItem . -Recurse | Measure-Object -Property Length -Sum -ErrorAction Stop).Sum / 1MB))
 
 $app_path = Join-Path "$publish_dir" "$appname"
-if ($IsWindows)
+if ($IsLinux -or $IsMacOS)
+{
+    $app_path = "$app_path"
+}
+else
 {
     $app_path = "$app_path" + ".exe"
 }
+
 if (-not (Test-Path "$app_path"))
 {
     Write-Error "app not found at $app_path"
     exit
 }
-$app_args = @()
 $console = $url -eq $null -or $url -eq ""
 
 $iterations = 10
@@ -134,14 +149,12 @@ if ($trace)
 
 if ($time)
 {
-    $app_args += ("--time")
-
     $sum = 0
     for ($i = 0; $i -lt ($iterations + 1); $i++)
     {
         Write-Debug "Starting $app"
         $result = Measure-Command {
-            $proc = Start-Process -FilePath $app_path -ArgumentList $app_args -PassThru -NoNewWindow -RedirectStandardOutput '.\NUL'
+            $proc = Start-Process -FilePath $app_path -ArgumentList @("--time") -PassThru -NoNewWindow -RedirectStandardOutput '.\NUL'
             $proc.WaitForExit()
         }
 
@@ -173,7 +186,7 @@ if ($time)
 }
 else
 {
-    dotnet $app
+    & $app_path
 }
 
 if ($trace)
