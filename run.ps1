@@ -6,6 +6,5 @@
 $app = "ApiTemplate"
 $url = "http://localhost:5000/WeatherForecast"
 
-Push-Location (Join-Path "$PSScriptRoot" "src" "$app")
-& (Join-Path "$PSScriptRoot" "run-it.ps1") -appname "$app" -url "$url" -r2r -aggro -trim -singleFile -time -trace
-Pop-Location
+
+& (Join-Path "$PSScriptRoot" "run-it.ps1") -appname "$app" -url "$url" -r2r -aggro -trim -singleFile -time -trace -selfContained

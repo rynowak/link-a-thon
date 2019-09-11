@@ -52,6 +52,7 @@ if ($trace)
 }
 
 $app_intermediates_dir = Join-Path "$PSScriptRoot" "intermediates" | Join-Path -ChildPath "$appname"
+$project = Join-Path "$PSScriptRoot" "src" | Join-Path -ChildPath "$appname" | Join-Path -ChildPath "$appname.csproj"
 $publish_dir = Join-Path "$app_intermediates_dir" "bin" | Join-Path -ChildPath "Release" | Join-Path -ChildPath "netcoreapp3.0" | Join-Path -ChildPath "$rid" | Join-Path -ChildPath "publish"
 if (Test-Path $publish_dir)
 {
@@ -85,7 +86,8 @@ $stopWatch = [Diagnostics.StopWatch]::StartNew()
   /p:LinkAwayReadyToRun=$trimr2r `
   /p:PublishReadyToRun=$r2r `
   /p:UseStaticHost=$singleFile `
-  "/p:DefineConstants=\`"$defines\`""
+  "/p:DefineConstants=\`"$defines\`"" `
+  "$project"
 $stopWatch.Stop();
 
 Write-Host ("Size is {0:N2} MB" -f ((Get-ChildItem "$publish_dir" -Recurse | Measure-Object -Property Length -Sum -ErrorAction Stop).Sum / 1MB))
