@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-#if NO_MVC
+#if NO_MVC || CUSTOM_BUILDER
 namespace ApiTemplate
 {
     public class StartupWithoutMvc

@@ -9,6 +9,7 @@ param(
     [switch] $r2r,
     [switch] $singleFile,
     [switch] $customBuilder,
+    [switch] $noMvc,
     [switch] $time,
     [string] $trace)
 
@@ -61,6 +62,11 @@ if ($time)
 if ($customBuilder)
 {
     $defines += "CUSTOM_BUILDER;"
+}
+
+if ($noMvc)
+{
+    $defines += "NO_MVC";
 }
 
 # Do not try to simplify the $defines part of this. Please.

@@ -21,12 +21,14 @@ namespace ApiTemplate
             {
                 var host = CreateHostBuilder(args).Build();
             
-#if CUSTOM_BUILDER
+    #if CUSTOM_BUILDER
+                // The CUSTOM_BUILDER configuration removes logging, so we need to manually tell the server when 
+                // we're ready for traffic.
                 host.Services.GetRequiredService<IHostApplicationLifetime>().ApplicationStarted.Register(() =>
                 {
                     Console.WriteLine("Application started.");
                 });
-#endif
+    #endif
 
                 host.Run();
             }
@@ -46,29 +48,20 @@ namespace ApiTemplate
         {
             var host = CreateHostBuilder(args).Build();
             
-            #if CUSTOM_BUILDER || NO_MVC
+    #if CUSTOM_BUILDER
+                // The CUSTOM_BUILDER configuration removes logging, so we need to manually tell the server when 
+                // we're ready for traffic.
                 host.Services.GetRequiredService<IHostApplicationLifetime>().ApplicationStarted.Register(() =>
                 {
                     Console.WriteLine("Application started.");
                 });
-            #endif
+    #endif
 
             host.Run();
         }
 #endif
 
-#if CUSTOM_BUILDER
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            new HostBuilder()
-                .ConfigureWebHost(webBuilder =>
-                {
-                    webBuilder.UseContentRoot(Directory.GetCurrentDirectory());
-                    webBuilder.UseKestrel();
-                    webBuilder.UseUrls("http://*:5000");
-                    webBuilder.UseStartup<Startup>();
-                });
-
-#elif NO_MVC
+#if NO_MVC || CUSTOM_BUILDER
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             new HostBuilder()
                 .ConfigureWebHost(webBuilder =>
