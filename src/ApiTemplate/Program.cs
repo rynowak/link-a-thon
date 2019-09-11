@@ -61,7 +61,7 @@ namespace ApiTemplate
         }
 #endif
 
-#if NO_MVC || CUSTOM_BUILDER
+#if CUSTOM_BUILDER
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             new HostBuilder()
                 .ConfigureWebHost(webBuilder =>
@@ -77,7 +77,11 @@ namespace ApiTemplate
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseUrls("http://*:5000");
+    #if NO_MVC
+                    webBuilder.UseStartup<StartupWithoutMvc>();
+    #else
                     webBuilder.UseStartup<Startup>();
+    #endif
                 });
 #endif
     }
