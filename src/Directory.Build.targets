@@ -8,6 +8,16 @@
     <SingleFilePublishDir>$([MSBuild]::EnsureTrailingSlash('$(PublishDir)'))</SingleFilePublishDir>
   </PropertyGroup>
 
+  <Target Name="DisplayPublishProperties"
+          BeforeTargets="Publish">
+    <Message Importance="High" Text="PublishTrimmed: '$(PublishTrimmed)'" />
+    <Message Importance="High" Text="UsePublishFilterList: '$(UsePublishFilterList)'" />
+    <Message Importance="High" Text="PublishReadyToRun: '$(PublishReadyToRun)'" />
+    <Message Importance="High" Text="LinkAggressively: '$(LinkAggressively)'" />
+    <Message Importance="High" Text="LinkAwayReadyToRun: '$(LinkAwayReadyToRun)'" />
+    <Message Importance="High" Text="UseStaticHost: '$(UseStaticHost)'" />
+    <Message Importance="High" Text="DefineConstants: '$(DefineConstants)'" />
+  </Target>
 
   <Target Name="SetAggressiveLinkingDefaults"
           AfterTargets="_SetILLinkDefaults"

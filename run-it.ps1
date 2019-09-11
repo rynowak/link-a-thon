@@ -75,6 +75,9 @@ if ($noMvc)
     $defines += "NO_MVC";
 }
 
+# Use a stopwatch for this measurement so that we get console output
+# (unlike Measure-Command). We don't need to be too precise for the publish time.
+$stopWatch = [Diagnostics.StopWatch]::StartNew()
 # Do not try to simplify the $defines part of this. Please.
 & dotnet publish -c Release -r $rid /bl `
   /p:PublishTrimmed=$trim `
@@ -83,8 +86,10 @@ if ($noMvc)
   /p:PublishReadyToRun=$r2r `
   /p:UseStaticHost=$singleFile `
   "/p:DefineConstants=\`"$defines\`""
+$stopWatch.Stop();
 
 Write-Host ("Size is {0:N2} MB" -f ((Get-ChildItem "$publish_dir" -Recurse | Measure-Object -Property Length -Sum -ErrorAction Stop).Sum / 1MB))
+Write-Host ("Publish took {0:N2} s" -f ($stopWatch.Elapsed.TotalSeconds))
 
 $app_path = Join-Path "$publish_dir" "$appname"
 if ($IsLinux -or $IsMacOS)
@@ -121,7 +126,6 @@ if ($trace)
     if ($singleFile)
     {
         # there's no deps.json alongside the single executable - look in the intermediates instead
-        Write-Host "using singlefile"
         $deps_json = Join-Path "$app_intermediates_dir" "multifile-publish" "$appname.deps.json"
     }
     else
