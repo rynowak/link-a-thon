@@ -13,6 +13,7 @@ namespace CustomSteps
     {
         public void Process(LinkContext context)
         {
+            Console.WriteLine($"Preserving types used in DI...");
             var asms = context
                 .GetAssemblies()
                 .Where(a => ReferencesDI(a));
@@ -112,7 +113,6 @@ namespace CustomSteps
                         continue;
                     }
 
-                    Console.WriteLine($"Marking {resolved} as instantiated because of {reason}.");
                     _context.Annotations.Mark(resolved);
                     _context.Annotations.MarkIndirectlyCalledMethod(resolved);
                     _context.Annotations.SetAction(resolved, MethodAction.Parse);

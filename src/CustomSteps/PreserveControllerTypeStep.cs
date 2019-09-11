@@ -10,6 +10,7 @@ namespace CustomSteps
     {
         public void Process(LinkContext context)
         {
+            Console.WriteLine("Preserving controller types...");
             var assemblies = context.GetAssemblies();
             foreach (var assembly in assemblies)
             {
@@ -37,7 +38,6 @@ namespace CustomSteps
             {
                 context.Annotations.Mark(type);
                 context.Annotations.SetPreserve(type, TypePreserve.All);
-                Console.WriteLine($"Preserving controller type: {type.FullName}");
             }
         }
     }
