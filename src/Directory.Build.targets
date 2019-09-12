@@ -5,6 +5,7 @@
        intermediate directory before running the bundler to produce
        the single exe in the final publish directory. -->
   <PropertyGroup Condition=" '$(UseStaticHost)' == 'true' ">
+    <MultiFilePublishDir>$(IntermediateOutputPath)multifile-publish/</MultiFilePublishDir>
     <SingleFilePublishDir>$([MSBuild]::EnsureTrailingSlash('$(PublishDir)'))</SingleFilePublishDir>
   </PropertyGroup>
 

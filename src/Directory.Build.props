@@ -36,28 +36,7 @@
     -->
     <UseStaticHost>false</UseStaticHost>
     <!-- Coreclr binaries necessary to produce the static host -->
-    <CoreClrBinariesDir Condition=" '$(CoreClrBinariesDir)' == '' " >$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)coreclrbin/'))</CoreClrBinariesDir>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <!-- place intermediates outside of the project folder to avoid
-         polluting it. makes it easier to submit the project to the
-         benchmarks infrastructure without uploading
-         intermediates. -->
-    <IntermediatesDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../intermediates/$(MSBuildProjectName)/'))</IntermediatesDir>
-    <!-- option to output intermediate files into the publish
-         directory as well for easy retrieval from aspnet benchmark
-         infra -->
-    <IntermediatesDir Condition=" '$(PublishIntermediates)' == 'true' ">$(PublishDir)</IntermediatesDir>
-    <BaseIntermediateOutputPath>$(IntermediatesDir)obj</BaseIntermediateOutputPath>
-    <BaseOutputPath>$(IntermediatesDir)/bin</BaseOutputPath>
-  </PropertyGroup>
-
-  <!-- When using the static host, publish multi-file into an
-       intermediate directory before running the bundler to produce
-       the single exe in the final publish directory. -->
-  <PropertyGroup Condition=" '$(UseStaticHost)' == 'true' ">
-    <MultiFilePublishDir>$(IntermediatesDir)/multifile-publish/</MultiFilePublishDir>
+    <CoreClrBinariesDir>$(MSBuildThisFileDirectory)coreclrbin/</CoreClrBinariesDir>
   </PropertyGroup>
 
   <!-- detect current platform RID -->
