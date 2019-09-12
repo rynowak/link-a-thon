@@ -6,8 +6,8 @@
 
   <ItemGroup Condition="'$(UseCustomStepPreserveDI)' == 'true'">
     <ILLinkCustomStep Include="CustomSteps.PreserveDIStep, CustomSteps, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <AssemblyPath>$(MSBuildThisFileDirectory)CustomSteps\bin\$(Configuration)\netcoreapp2.0\linux-x64\CustomSteps.dll</AssemblyPath>
-      <PdbPath>$(MSBuildThisFileDirectory)CustomSteps\bin\$(Configuration)\netcoreapp2.0\linux-x64\CustomSteps.pdb</PdbPath>
+      <AssemblyPath>$(MSBuildThisFileDirectory)CustomSteps\bin\$(Configuration)\netcoreapp2.0\$(RuntimeIdentifier)\CustomSteps.dll</AssemblyPath>
+      <PdbPath>$(MSBuildThisFileDirectory)CustomSteps\bin\$(Configuration)\netcoreapp2.0\$(RuntimeIdentifier)\CustomSteps.pdb</PdbPath>
       <BeforeStep>MarkStep</BeforeStep>
     </ILLinkCustomStep>
   </ItemGroup>
