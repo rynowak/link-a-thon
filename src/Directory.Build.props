@@ -1,22 +1,22 @@
 <Project>
-  <!-- These defaults will publish a self-contained, aggressively
-       linked, R2R, single-file application. -->
+  <!-- By default this will result in a normal fx-dependent app. Set
+       any of the properties below to true to enable different parts
+       of the prototype. -->
   <PropertyGroup>
-    <SelfContained Condition=" '$(SelfContained)' == '' ">true</SelfContained>
-
+    <SelfContained>false</SelfContained>
 
     <!--
         Linker options
     -->
     <!-- Run the linker during publish -->
-    <PublishTrimmed Condition=" '$(PublishTrimmed)' == '' ">true</PublishTrimmed>
+    <PublishTrimmed>false</PublishTrimmed>
     <!-- Have the linker go all aggro -->
-    <LinkAggressively Condition=" '$(LinkAggressively)' == '' ">true</LinkAggressively>
+    <LinkAggressively>false</LinkAggressively>
     <!-- Set this to true to have the linker remove r2r - mutually exclusive with LinkAggressively -->
-    <LinkAwayReadyToRun Condition=" '$(LinkAwayReadyToRun)' == '' ">false</LinkAwayReadyToRun>
+    <LinkAwayReadyToRun>false</LinkAwayReadyToRun>
     <!-- Use an experimentally-determined publish exclude list that
          still results in a working app -->
-    <UsePublishFilterList Condition=" '$(UsePublishFilterList)' == '' ">true</UsePublishFilterList>
+    <UsePublishFilterList>false</UsePublishFilterList>
     <!-- Produce a log for
          https://github.com/mono/linker/blob/master/src/analyzer/README.md
          -->
@@ -27,14 +27,14 @@
     <!--
         Yeah boiiiiiiiiiii.
     -->
-    <PublishReadyToRun Condition=" '$(PublishReadyToRun)' == '' ">true</PublishReadyToRun>
+    <PublishReadyToRun>false</PublishReadyToRun>
     <CustomR2RLogicTargetsPath>$(MSBuildThisFileDirectory)CustomR2RLogic.targets</CustomR2RLogicTargetsPath>
 
 
     <!--
         Embed everything into a single-file statically-linked host
     -->
-    <UseStaticHost Condition=" '$(UseStaticHost)' == '' ">true</UseStaticHost>
+    <UseStaticHost>false</UseStaticHost>
     <!-- Coreclr binaries necessary to produce the static host -->
     <CoreClrBinariesDir Condition=" '$(CoreClrBinariesDir)' == '' " >$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)coreclrbin/'))</CoreClrBinariesDir>
   </PropertyGroup>
