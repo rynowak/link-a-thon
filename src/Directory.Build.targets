@@ -102,20 +102,24 @@
 
       <!-- apphost -->
       <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)%(Extension)' == '$(AssemblyName)'" />
+      <PublishReplaceList Include="$(CoreClrBinariesDir)corebundle">
+        <RelativePath>$(AssemblyName)</RelativePath>
+      </PublishReplaceList>
+    </ItemGroup>
+
+    <ItemGroup Condition=" '$(UseStaticHost)' == 'true' or '$(PublishReadyToRun)' == 'true' ">
+      <!-- Replace System.Private.CoreLib for crossgen, regardless of if we're using the static host -->
       <!-- corelib -->
       <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'System.Private.CoreLib'" />
-
-      <StaticHostLibs Include="$(CoreClrBinariesDir)corebundle">
-        <RelativePath>$(AssemblyName)</RelativePath>
-      </StaticHostLibs>
-      <StaticHostLibs Include="$(CoreClrBinariesDir)System.Private.CoreLib.dll">
+      <PublishReplaceList Include="$(CoreClrBinariesDir)System.Private.CoreLib.dll">
         <RelativePath>System.Private.CoreLib.dll</RelativePath>
-      </StaticHostLibs>
+      </PublishReplaceList>
     </ItemGroup>
 
     <ItemGroup>
       <ResolvedFileToPublish Remove="@(PublishFilterList)" />
-      <ResolvedFileToPublish Include="@(StaticHostLibs)" Condition=" '$(UseStaticHost)' == 'true' " />
+      <ResolvedFileToPublish Include="@(PublishReplaceList)" Condition=" '$(UseStaticHost)' == 'true' or '$(PublishReadyToRun)' == 'true' " />
+
 
       <ResolvedCompileFileDefinitions Remove="@(PublishFilterList)" />
       <NativeCopyLocalItems Remove="@(PublishFilterList)" />
@@ -154,6 +158,5 @@
     <Error Condition=" ! Exists('$(SingleFileExecutable)') " Text="single file not found at $(SingleFileExecutable)" />
     <Message Importance="High" Text="generated $(SingleFileExecutable)" />
   </Target>
-
 
 </Project>
