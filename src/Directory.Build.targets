@@ -108,6 +108,9 @@
       </PublishReplaceList>
     </ItemGroup>
 
+    <Error Condition=" '$(UsingStaticHost)' == 'true' And !Exists('$(CoreClrBinariesDir)corebundle') "
+           Text="corebundle not found in $(CoreClrBinariesDir)" />
+
     <ItemGroup Condition=" '$(UseStaticHost)' == 'true' or '$(PublishReadyToRun)' == 'true' ">
       <!-- Replace System.Private.CoreLib for crossgen, regardless of if we're using the static host -->
       <!-- corelib -->
@@ -116,6 +119,9 @@
         <RelativePath>System.Private.CoreLib.dll</RelativePath>
       </PublishReplaceList>
     </ItemGroup>
+
+    <Error Condition=" ('$(UsingStaticHost)' == 'true' or '$(PublishReadyToRun)' == 'true') And !Exists('$(CoreClrBinariesDir)System.Private.CoreLib.dll') "
+           Text="System.Private.CoreLib.dll not found in $(CoreClrBinariesDir)" />
 
     <ItemGroup>
       <ResolvedFileToPublish Remove="@(PublishFilterList)" />
@@ -143,6 +149,8 @@
           AfterTargets="Publish"
           Condition=" '$(UseStaticHost)' == 'true' ">
     <MakeDir Directories="$(SingleFilePublishDir)" />
+    <Error Condition="!Exists('$(CoreClrBinariesDir)bundle.dll')"
+           Text="bundle.dll not found in $(CoreClrBinariesDir)" />
     <PropertyGroup>
       <BundleCommand>dotnet $(CoreClrBinariesDir)bundle.dll</BundleCommand>
       <BundleCommand>$(BundleCommand) --source $([System.IO.Path]::GetFullPath('$(MultiFilePublishDir)'))</BundleCommand>

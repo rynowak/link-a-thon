@@ -7,6 +7,9 @@
       <_CrossgenTool Remove="@(_CrossgenTool)" />
       <_CrossgenTool Include="$(CoreClrBinariesDir)crossgen" />
     </ItemGroup>
+    <Error Condition="!Exists('@(_CrossgenTool)')"
+           Text="crossgen not found in $(CoreClrBinariesDir)" />
+
   </Target>
 
   <!-- This overrides the SDK's _CreateR2RImages target, so this file
