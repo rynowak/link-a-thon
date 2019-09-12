@@ -26,14 +26,16 @@ dotnet run -p "$driverproject" -- \
        --path weatherforecast \
        --warmup 1 \
        --duration 2 \
-       --build-arg "/p:UseStaticHost=true" \
-       --build-arg "/p:UsePublishFilterList=true" \
+       --build-arg "/p:SelfContained=true" \
        --build-arg "/p:PublishTrimmed=true" \
+       --build-arg "/p:LinkAggressively=true" \
+       --build-arg "/p:UsePublishFilterList=true" \
+       --build-arg "/p:UseStaticHost=true" \
        --build-arg "/p:PublishReadyToRun=true" \
-       --build-arg "/p:PublishIntermediates=true" \
        --display-output \
        --iterations 1 \
-       --collect-counters
+       --collect-counters \
+       --env "COMPlus_gcServer=1"
 
 #       --fetch \
 #       --collect-startup \
