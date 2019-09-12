@@ -1,25 +1,171 @@
 <Project>
-  <Target Name="SetAggressiveLinkingDefaults" AfterTargets="_SetILLinkDefaults" Condition="'$(LinkAggressively)' == 'true'">
+
+  <!-- This must be set after SDK targets, which set PublishDir. -->
+  <!-- When using the static host, publish multi-file into an
+       intermediate directory before running the bundler to produce
+       the single exe in the final publish directory. -->
+  <PropertyGroup Condition=" '$(UseStaticHost)' == 'true' ">
+    <MultiFilePublishDir>$(IntermediateOutputPath)multifile-publish/</MultiFilePublishDir>
+    <SingleFilePublishDir>$([MSBuild]::EnsureTrailingSlash('$(PublishDir)'))</SingleFilePublishDir>
+  </PropertyGroup>
+
+  <Target Name="DisplayPublishProperties"
+          BeforeTargets="Publish">
+    <Message Importance="High" Text="PublishTrimmed: '$(PublishTrimmed)'" />
+    <Message Importance="High" Text="UsePublishFilterList: '$(UsePublishFilterList)'" />
+    <Message Importance="High" Text="PublishReadyToRun: '$(PublishReadyToRun)'" />
+    <Message Importance="High" Text="LinkAggressively: '$(LinkAggressively)'" />
+    <Message Importance="High" Text="LinkAwayReadyToRun: '$(LinkAwayReadyToRun)'" />
+    <Message Importance="High" Text="UseStaticHost: '$(UseStaticHost)'" />
+    <Message Importance="High" Text="DefineConstants: '$(DefineConstants)'" />
+  </Target>
+
+  <Target Name="SetAggressiveLinkingDefaults"
+          AfterTargets="_SetILLinkDefaults"
+          Condition="'$(LinkAggressively)' == 'true'">
     <ItemGroup>
       <TrimmerRootAssembly Remove="@(TrimmerRootAssembly)" />
       <TrimmerRootAssembly Include="@(IntermediateAssembly)" />
-      <_ManagedAssembliesToLink Update="@(_ManagedAssembliesToLink)" Condition="'%(_ManagedAssembliesToLink.action)' != 'link'">
+      <_ManagedAssembliesToLink Update="@(_ManagedAssembliesToLink)"
+                                Condition="'%(_ManagedAssembliesToLink.action)' != 'link'">
         <action>link</action>
       </_ManagedAssembliesToLink>
     </ItemGroup>
     <Message Text="Linker has gone aggro. Yeeting EVERYTHING." Importance="high" />
   </Target>
 
-  <Target 
-    Name="SetLessAggressiveLinkingDefaults" 
-    AfterTargets="_SetILLinkDefaults" 
-    Condition="'$(LinkAggressively)' != 'true' and '$(LinkAwayReadyToRun)' == 'true'">
+  <Target Name="SetLessAggressiveLinkingDefaults"
+          AfterTargets="_SetILLinkDefaults"
+          Condition="'$(LinkAggressively)' != 'true' and '$(LinkAwayReadyToRun)' == 'true'">
     <ItemGroup>
-      <_ManagedAssembliesToLink Update="@(_ManagedAssembliesToLink)" Condition="'%(_ManagedAssembliesToLink.action)' != 'link'">
+      <_ManagedAssembliesToLink Update="@(_ManagedAssembliesToLink)"
+                                Condition="'%(_ManagedAssembliesToLink.action)' != 'link'">
         <action>addbypassngen</action>
       </_ManagedAssembliesToLink>
     </ItemGroup>
     <Message Text="Linker is pretty chill. Yeeting a unused assemblies and all ready-to-run." Importance="high" />
   </Target>
-  
+
+  <Target Name="_DontUseBuildDependencyFile"
+          AfterTargets="_ComputeUseBuildDependencyFile"
+          Condition=" '$(UsePublishFilterList)' == 'true' ">
+    <PropertyGroup>
+      <!-- this allows us to remove files from deps.json, even if we didn't link. -->
+      <_UseBuildDependencyFile>false</_UseBuildDependencyFile>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="RemoveUnnecessaryFilesFromPublishOutput"
+          AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup Condition=" '$(UsePublishFilterList)' == 'true' ">
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'libmscordaccore'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'libmscordbi'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'libdbgshim'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'libcoreclrtraceptprovider'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'SOS_README'" />
+
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(Extension)' == '.a'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(Extension)' == '.pdb'" />
+
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)%(Extension)' == 'appsettings.Development.json'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)%(Extension)' == 'nuget.config'" />
+
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'System.IO.Compression.Native'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'System.Security.Cryptography.Native.OpenSsl'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'System.Net.Security.Native'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'System.Net.Http.Native'" />
+
+
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'System.Private.Xml'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'System.Private.Xml.Linq'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'System.Data.Common'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'Microsoft.CSharp'" />
+
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'System.IO.Compression'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'System.Private.DataContractSerialization'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'System.Reflection.Metadata'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'System.Text.RegularExpressions'" />
+    </ItemGroup>
+
+    <Message Importance="High" Text="not publishing: %(PublishFilterList.Identity)" />
+
+    <ItemGroup Condition=" '$(UseStaticHost)' == 'true' ">
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'libcoreclr'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'libclrjit'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'libhostpolicy'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'libhostfxr'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'System.Native'" />
+
+      <!-- These used to be filtered out. Do they need to be in the bundle? -->
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'System.IO.Compression.Native'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'System.Net.Security.Native'" />
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'System.Security.Cryptography.Native.OpenSsl'" />
+
+      <!-- apphost -->
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)%(Extension)' == '$(AssemblyName)'" />
+      <PublishReplaceList Include="$(CoreClrBinariesDir)corebundle">
+        <RelativePath>$(AssemblyName)</RelativePath>
+      </PublishReplaceList>
+    </ItemGroup>
+
+    <Error Condition=" '$(UsingStaticHost)' == 'true' And !Exists('$(CoreClrBinariesDir)corebundle') "
+           Text="corebundle not found in $(CoreClrBinariesDir)" />
+
+    <ItemGroup Condition=" '$(UseStaticHost)' == 'true' or '$(PublishReadyToRun)' == 'true' ">
+      <!-- Replace System.Private.CoreLib for crossgen, regardless of if we're using the static host -->
+      <!-- corelib -->
+      <PublishFilterList Include="%(ResolvedFileToPublish.Identity)" Condition="'%(FileName)' == 'System.Private.CoreLib'" />
+      <PublishReplaceList Include="$(CoreClrBinariesDir)System.Private.CoreLib.dll">
+        <RelativePath>System.Private.CoreLib.dll</RelativePath>
+      </PublishReplaceList>
+    </ItemGroup>
+
+    <Error Condition=" ('$(UsingStaticHost)' == 'true' or '$(PublishReadyToRun)' == 'true') And !Exists('$(CoreClrBinariesDir)System.Private.CoreLib.dll') "
+           Text="System.Private.CoreLib.dll not found in $(CoreClrBinariesDir)" />
+
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(PublishFilterList)" />
+      <ResolvedFileToPublish Include="@(PublishReplaceList)" Condition=" '$(UseStaticHost)' == 'true' or '$(PublishReadyToRun)' == 'true' " />
+
+
+      <ResolvedCompileFileDefinitions Remove="@(PublishFilterList)" />
+      <NativeCopyLocalItems Remove="@(PublishFilterList)" />
+      <ResourceCopyLocalItems Remove="@(PublishFilterList)" />
+      <RuntimeCopyLocalItems Remove="@(PublishFilterList)" />
+      <RuntimeTargetsCopyLocalItems Remove="@(PublishFilterList)" />
+      <RuntimePackAsset Remove="@(PublishFilterList)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="SetPublishDirForMultiFileIntermediates"
+          BeforeTargets="PrepareForPublish"
+          Condition=" '$(UseStaticHost)' == 'true' ">
+    <PropertyGroup>
+      <PublishDir>$(MultiFilePublishDir)</PublishDir>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="CreateSingleFileUsingStaticHost"
+          AfterTargets="Publish"
+          Condition=" '$(UseStaticHost)' == 'true' ">
+    <MakeDir Directories="$(SingleFilePublishDir)" />
+    <Error Condition="!Exists('$(CoreClrBinariesDir)bundle.dll')"
+           Text="bundle.dll not found in $(CoreClrBinariesDir)" />
+    <PropertyGroup>
+      <BundleCommand>dotnet $(CoreClrBinariesDir)bundle.dll</BundleCommand>
+      <BundleCommand>$(BundleCommand) --source $([System.IO.Path]::GetFullPath('$(MultiFilePublishDir)'))</BundleCommand>
+      <BundleCommand>$(BundleCommand) --host $(AssemblyName)</BundleCommand>
+    </PropertyGroup>
+    <Message Importance="High" Text="$(BundleCommand)" />
+    <!-- run from single-file publish directory to ensure output is placed there -->
+    <Exec Command="$(BundleCommand)"
+          WorkingDirectory="$(SingleFilePublishDir)" />
+    <PropertyGroup>
+      <SingleFileExecutable>$(SingleFilePublishDir)$(AssemblyName)</SingleFileExecutable>
+    </PropertyGroup>
+    <Exec Command="chmod 755 $(SingleFileExecutable)" />
+    <Error Condition=" ! Exists('$(SingleFileExecutable)') " Text="single file not found at $(SingleFileExecutable)" />
+    <Message Importance="High" Text="generated $(SingleFileExecutable)" />
+  </Target>
+
 </Project>

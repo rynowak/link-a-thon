@@ -11,5 +11,6 @@
   <!-- Don't simplify this. We need to override stuff defined in the SDK. -->
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <Import Project="$(CustomLinkerStepsTargetsPath)" />
+  <Import Project="$(CustomR2RLogicTargetsPath)" />
 
 </Project>

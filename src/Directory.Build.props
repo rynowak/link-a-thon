@@ -1,29 +1,47 @@
 <Project>
+  <!-- By default this will result in a normal fx-dependent app. Set
+       any of the properties below to true to enable different parts
+       of the prototype. -->
   <PropertyGroup>
-    <!-- runs the linker during publish -->
+    <!--
+        Linker options
+    -->
+    <!-- Run the linker during publish -->
     <PublishTrimmed>false</PublishTrimmed>
-
-    <!--
-      produces a log for https://github.com/mono/linker/blob/master/src/analyzer/README.md
-
-      -->
-    <_ExtraTrimmerArgs>--dump-dependencies -b true $(_ExtraTrimmerArgs)</_ExtraTrimmerArgs>
-
-    <!--
-      set this to true to have the linker go all aggro
-    -->
+    <!-- Have the linker go all aggro -->
     <LinkAggressively>false</LinkAggressively>
-
-    <!--
-      set this to true to have the linker remove r2r - mutually exclusive with LinkAggressively
-    -->
+    <!-- Set this to true to have the linker remove r2r - mutually exclusive with LinkAggressively -->
     <LinkAwayReadyToRun>false</LinkAwayReadyToRun>
+    <!-- Use an experimentally-determined publish exclude list that
+         still results in a working app -->
+    <UsePublishFilterList>false</UsePublishFilterList>
+    <!-- Produce a log for
+         https://github.com/mono/linker/blob/master/src/analyzer/README.md
+         -->
+    <_ExtraTrimmerArgs>--dump-dependencies -b true $(_ExtraTrimmerArgs)</_ExtraTrimmerArgs>
+    <CustomLinkerStepsTargetsPath>$(MSBuildThisFileDirectory)CustomLinkerSteps.targets</CustomLinkerStepsTargetsPath>
+
 
     <!--
-      Yeah boiiiiiiiiiii.
+        Yeah boiiiiiiiiiii.
     -->
     <PublishReadyToRun>false</PublishReadyToRun>
+    <CustomR2RLogicTargetsPath>$(MSBuildThisFileDirectory)CustomR2RLogic.targets</CustomR2RLogicTargetsPath>
 
-    <CustomLinkerStepsTargetsPath>$(MSBuildThisFileDirectory)CustomLinkerSteps.targets</CustomLinkerStepsTargetsPath>
+
+    <!--
+        Embed everything into a single-file statically-linked host
+    -->
+    <UseStaticHost>false</UseStaticHost>
+    <!-- Coreclr binaries necessary to produce the static host -->
+    <CoreClrBinariesDir>$(MSBuildThisFileDirectory)coreclrbin/</CoreClrBinariesDir>
   </PropertyGroup>
+
+  <!-- detect current platform RID -->
+  <PropertyGroup Condition=" '$(SelfContained)' == 'true' ">
+    <RuntimeIdentifier Condition="'$([MSBuild]::IsOSPlatform(Windows))' == 'true'">win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$([MSBuild]::IsOSPlatform(Linux))' == 'true'">linux-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$([MSBuild]::IsOSPlatform(OSX))' == 'true'">osx-x64</RuntimeIdentifier>
+  </PropertyGroup>
+
 </Project>
