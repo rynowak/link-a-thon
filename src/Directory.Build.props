@@ -3,8 +3,6 @@
        any of the properties below to true to enable different parts
        of the prototype. -->
   <PropertyGroup>
-    <SelfContained>false</SelfContained>
-
     <!--
         Linker options
     -->
