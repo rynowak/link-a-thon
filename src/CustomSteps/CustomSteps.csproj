@@ -5,6 +5,9 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <DefaultLinkerLocation>$(_ILLinkTasksDirectoryRoot)netcoreapp2.0\</DefaultLinkerLocation>
+    
+    <!-- workaround for https://github.com/dotnet/sdk/issues/1834 -->
+    <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
   </PropertyGroup>
 
   <ItemGroup>
