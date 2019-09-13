@@ -30,24 +30,6 @@ git fetch -a swaroop
 git checkout pass
 ```
 
-Last but not least, we need to make sure the build script is friendly to our coreclr fix as follow:
-
-```
-cd ~/git/link-a-thon
-vi ./build-coreclr.sh
-```
-
-Comment out these two lines - obviously they are going to reset out fix.
-
-```
-    # git submodule update --init
-    pushd coreclr
-    # git checkout single-exe
-
-```
-
-Make sure you keep the `pushd coreclr` line - obviously we need that.
-
 ## Installing dependencies
 
 With that, the source code is ready to be built. Now we setup the necessary tools for the build.
