@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ApiTemplate
 {
+#if !NO_MVC && !CUSTOM_BUILDER
     public class Startup
     {
         public Startup(IConfiguration configuration)
@@ -46,4 +47,5 @@ namespace ApiTemplate
             });
         }
     }
+#endif
 }
