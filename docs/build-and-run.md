@@ -21,14 +21,7 @@ cd ~/git/link-a-thon
 git submodule update --init
 ```
 
-This is unfortunate but important, we need a fix in CoreCLR that is not yet merged to master. To do that, we modify the CoreCLR bits as follow:
-
-```
-cd ~/git/link-a-thon/coreclr
-git remote add swaroop https://github.com/swaroop-sridhar/coreclr
-git fetch -a swaroop
-git checkout pass
-```
+This will check out the commit referenced in the submodule - a recent version of the single-exe branch. To use a different version of coreclr, check out the desired commit instead.
 
 ## Installing dependencies
 
