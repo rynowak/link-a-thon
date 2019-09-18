@@ -8,9 +8,7 @@ coreclrbinariesdir="$scriptroot/src/coreclrbin"
 # build coreclr
 if [[ ! -e "$coreclrbuilddir" ]]; then
     # apt install cmake clang llvm libicu-dev liblttng-ust-dev libkrb5-dev
-    git submodule update --init
     pushd coreclr
-    git checkout single-exe
     export LANG=en_US.UTF-8
     ./build.sh release -stripsymbols
     popd
