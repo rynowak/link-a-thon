@@ -51,9 +51,18 @@ if ($trace)
     }
 }
 
-$app_intermediates_dir = Join-Path "$PSScriptRoot" "intermediates" | Join-Path -ChildPath "$appname"
 $project = Join-Path "$PSScriptRoot" "src" | Join-Path -ChildPath "$appname" | Join-Path -ChildPath "$appname.csproj"
-$publish_dir = Join-Path "$app_intermediates_dir" "bin" | Join-Path -ChildPath "Release" | Join-Path -ChildPath "netcoreapp3.0" | Join-Path -ChildPath "$rid" | Join-Path -ChildPath "publish"
+
+if ($IsLinux -or $IsMacOS)
+{
+    $app_intermediates_dir = Join-Path "$PSScriptRoot" "intermediates" | Join-Path -ChildPath "$appname"
+    $publish_dir = Join-Path "$app_intermediates_dir" "bin" | Join-Path -ChildPath "Release" | Join-Path -ChildPath "netcoreapp3.0" | Join-Path -ChildPath "$rid" | Join-Path -ChildPath "publish"    
+}
+else
+{
+    $publish_dir = Join-Path "." "bin" | Join-Path -ChildPath "Release" | Join-Path -ChildPath "netcoreapp3.0" | Join-Path -ChildPath "$rid" | Join-Path -ChildPath "publish"    
+}
+
 if (Test-Path $publish_dir)
 {
     Write-Debug "Deleting $publish_dir"
