@@ -4,6 +4,7 @@ using Mono.Linker;
 using Mono.Linker.Steps;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -14,11 +15,16 @@ namespace CustomSteps
         public void Process(LinkContext context)
         {
             Console.WriteLine($"Preserving types used in DI...");
-            var asms = context
-                .GetAssemblies()
-                .Where(a => ReferencesDI(a));
-            var diWalker = new PreserveDIWalker(context);
-            diWalker.Walk(asms);
+            Console.WriteLine($"Saving data to {Path.GetFullPath("di.txt")}");
+
+            using (var output = new StreamWriter("di.txt"))
+            {
+                var asms = context
+                    .GetAssemblies()
+                    .Where(a => ReferencesDI(a));
+                var diWalker = new PreserveDIWalker(context, output);
+                diWalker.Walk(asms);
+            }
         }
 
         private bool ReferencesDI(AssemblyDefinition asm)
@@ -31,10 +37,12 @@ namespace CustomSteps
         private class PreserveDIWalker : MetadataWalker
         {
             private readonly LinkContext _context;
+            private readonly TextWriter _writer;
 
-            public PreserveDIWalker(LinkContext context)
+            public PreserveDIWalker(LinkContext context, TextWriter writer)
             {
                 _context = context;
+                _writer = writer;
             }
 
             public bool CaptureTypeTokens { get; set; }
@@ -49,11 +57,6 @@ namespace CustomSteps
 
             protected override void WalkMethodBody(Mono.Cecil.Cil.MethodBody body)
             {
-                if (body.Method.Name == "AddConfiguration" && body.Method.DeclaringType.Name == "LoggingBuilderConfigurationExtensions")
-                {
-                    Console.WriteLine();
-                }
-
                 CaptureTypeTokens = false;
                 base.WalkMethodBody(body);
 
@@ -104,6 +107,8 @@ namespace CustomSteps
                 {
                     return;
                 }
+
+                _writer?.WriteLine(type.FullName);
 
                 foreach (var method in type.GetMethods())
                 {
