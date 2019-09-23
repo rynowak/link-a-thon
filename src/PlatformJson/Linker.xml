@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- See: https://github.com/mono/linker/blob/master/src/linker/README.md#syntax-of-xml-descriptor -->
+<linker>
+  <assembly fullname="PlatformJson">
+    <type fullname="PlatformJson.WeatherForecast" />
+  </assembly>
+</linker>
