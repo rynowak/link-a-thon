@@ -1,10 +1,20 @@
-﻿using Mono.Cecil;
+﻿using System;
+using System.Collections.Generic;
+using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Mono.Linker;
 
 namespace CustomSteps
 {
     public abstract class MetadataWalker
     {
+        public MetadataWalker(LinkContext context)
+        {
+            Context = context;
+        }
+
+        protected LinkContext Context { get; }
+
         protected AssemblyDefinition CurrentAssembly { get; private set; }
 
         protected ModuleDefinition CurrentModule { get; private set; }
@@ -12,6 +22,15 @@ namespace CustomSteps
         protected TypeDefinition CurrentType { get; private set; }
 
         protected MethodDefinition CurrentMethod { get; private set; }
+
+        public void Walk(IEnumerable<AssemblyDefinition> asms)
+        {
+            foreach (var asm in asms)
+            {
+                WalkAssembly(asm);
+            }
+        }
+
 
         protected virtual void WalkAssembly(AssemblyDefinition assembly)
         {

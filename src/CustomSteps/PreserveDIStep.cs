@@ -7,123 +7,139 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices.ComTypes;
+using System.Xml;
 
 namespace CustomSteps
 {
-    public class PreserveDIStep : IStep
+    public class PreserveDIStep : MarkStep
     {
-        public void Process(LinkContext context)
+        private readonly List<(TypeReference service, TypeReference implementation)> services = new List<(TypeReference service, TypeReference implementation)>();
+        private readonly List<TypeReference> options = new List<TypeReference>();
+        private readonly List<TypeReference> activated = new List<TypeReference>();
+
+        public override void Process(LinkContext context)
         {
+            // This step replaces the MarkStep
+            context.Pipeline.RemoveStep(typeof(MarkStep));
+
             Console.WriteLine($"Preserving types used in DI...");
             Console.WriteLine($"Saving data to {Path.GetFullPath("di.txt")}");
 
-            using (var output = new StreamWriter("di.txt"))
+            using (var writer = new StreamWriter("di.txt"))
             {
-                var asms = context
-                    .GetAssemblies()
-                    .Where(a => ReferencesDI(a));
-                var diWalker = new PreserveDIWalker(context, output);
-                diWalker.Walk(asms);
+                services.Clear();
+
+                base.Process(context);
+
+                foreach (var (service, implementation) in services)
+                {
+                    writer.WriteLine($"{service?.FullName}: {implementation?.FullName ?? "(instance/factory)"}");
+                }
             }
         }
 
-        private bool ReferencesDI(AssemblyDefinition asm)
+        protected override TypeDefinition MarkType(TypeReference reference)
         {
-            return asm.Modules
-                .Any(m => m.AssemblyReferences
-                    .Any(ar => string.Equals(ar.Name, "Microsoft.Extensions.DependencyInjection.Abstractions")));
+            if (reference != null && 
+                reference.FullName.StartsWith("Microsoft.Extensions.Options") && 
+                reference is GenericInstanceType generic &&
+                generic.GenericArguments.Count == 1)
+            {
+                if (generic.GenericArguments[0].Resolve() is TypeDefinition optionsType)
+                {
+                    options.Add(optionsType);
+
+                    var constructor = optionsType.GetDefaultInstanceConstructor().Resolve();
+                    if (constructor != null)
+                    {
+                        MarkIndirectlyCalledMethod(constructor);
+                    }
+                }
+            }
+
+            return base.MarkType(reference);
         }
 
-        private class PreserveDIWalker : MetadataWalker
+        protected override void DoAdditionalMethodProcessing(MethodDefinition method)
         {
-            private readonly LinkContext _context;
-            private readonly TextWriter _writer;
-
-            public PreserveDIWalker(LinkContext context, TextWriter writer)
+            if (method.HasBody)
             {
-                _context = context;
-                _writer = writer;
-            }
-
-            public bool CaptureTypeTokens { get; set; }
-
-            public void Walk(IEnumerable<AssemblyDefinition> asms)
-            {
-                foreach (var asm in asms)
+                var body = method.Body;
+                for (var i = 0; i < body.Instructions.Count; i++)
                 {
-                    WalkAssembly(asm);
-                }
-            }
-
-            protected override void WalkMethodBody(Mono.Cecil.Cil.MethodBody body)
-            {
-                CaptureTypeTokens = false;
-                base.WalkMethodBody(body);
-
-                if (CaptureTypeTokens)
-                {
-                    for (var i = 0; i < body.Instructions.Count; i++)
-                    {
-                        var instruction = body.Instructions[i];
-                        if (instruction.OpCode == OpCodes.Ldtoken && instruction.Operand is TypeReference type)
-                        {
-                            PreserveConstructors(type, "typeof()");
-                        }
-                    }
-                }
-            }
-
-            protected override bool VisitInstruction(Instruction instruction)
-            {
-                var method = instruction.Operand as MethodReference;
-                if (method != null && IsDIMethod(method))
-                {
-                    if (method is GenericInstanceMethod generic)
-                    {
-                        // This is a case like services.TryAddSingleton<TService, TImpl>();
-                        for (var i = 0; i < generic.GenericArguments.Count; i++)
-                        {
-                            PreserveConstructors(generic.GenericArguments[i], method.ToString());
-                        }
-                    }
-                    else if (method != null && method.Parameters.Any(p => p.ParameterType.FullName == "System.Type"))
-                    {
-                        // This is a case like services.TryAddSingleton(typeof(TService), typeof(TImpl));
-                        //
-                        // We want to grovel all typeof(T) usages in this method.
-                        CaptureTypeTokens = true;
-                    }
-                }
-
-                return true;
-            }
-
-            private bool IsDIMethod(MethodReference method) => method.DeclaringType.FullName.StartsWith("Microsoft.Extensions.DependencyInjection", StringComparison.Ordinal);
-
-            private void PreserveConstructors(TypeReference typeReference, string reason)
-            {
-                var type = typeReference.Resolve();
-                if (type == null || !type.IsClass)
-                {
-                    return;
-                }
-
-                _writer?.WriteLine(type.FullName);
-
-                foreach (var method in type.GetMethods())
-                {
-                    var resolved = method.Resolve();
-                    if (resolved == null || !resolved.IsConstructor)
+                    var instruction = body.Instructions[i];
+                    var operand = instruction.Operand as MethodReference;
+                    if (operand == null)
                     {
                         continue;
                     }
 
-                    _context.Annotations.Mark(resolved);
-                    _context.Annotations.MarkIndirectlyCalledMethod(resolved);
-                    _context.Annotations.SetAction(resolved, MethodAction.Parse);
-                    _context.Annotations.AddPreservedMethod(type, resolved);
+                    if (DIFacts.TryParseGenericAddServiceMethod(operand, out var service, out var implementation))
+                    {
+                        if (service == null)
+                        {
+                            Console.WriteLine($"Cannot analyze call to {operand} in {method}");
+                            continue;
+                        }
+
+                        MarkServiceType(service, implementation);
+                    }
+                    else if (DIFacts.TryParseHostedService(operand, out service, out implementation))
+                    {
+                        MarkServiceType(service, implementation);
+                    }
+                    else if (DIFacts.TryParseNonGenericAddServiceMethod(body, i, operand, out service, out implementation))
+                    {
+                        MarkServiceType(service, implementation);
+                    }
+                    else if (DIFacts.TryParseActivatedType(operand, out var activatedType))
+                    {
+                        var resolved = activatedType.Resolve();
+                        if (resolved == null)
+                        {
+                            Console.WriteLine($"Cannot analyze call to {operand} in {method}");
+                            continue;
+                        }
+
+                        activated.Add(activatedType);
+                        PreserveConstructors(resolved);
+                    }
+                    else if (IsDIMethod(operand))
+                    {
+                        Console.WriteLine();
+                    }
                 }
             }
         }
+
+        private void MarkServiceType(TypeReference serviceReference, TypeReference implementationReference)
+        {
+            services.Add((serviceReference, implementationReference));
+
+            var type = implementationReference?.Resolve();
+            if (type == null || !type.IsClass)
+            {
+                return;
+            }
+
+            PreserveConstructors(type);
+        }
+
+        private void PreserveConstructors(TypeDefinition type)
+        {
+            foreach (var method in type.GetMethods())
+            {
+                var resolved = method.Resolve();
+                if (resolved == null || !resolved.IsConstructor)
+                {
+                    continue;
+                }
+
+                MarkIndirectlyCalledMethod(resolved);
+            }
+        }
+
+        private bool IsDIMethod(MethodReference method) => method.DeclaringType.FullName.StartsWith("Microsoft.Extensions.DependencyInjection", StringComparison.Ordinal);
     }
 }

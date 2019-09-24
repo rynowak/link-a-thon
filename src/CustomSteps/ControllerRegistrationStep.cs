@@ -24,11 +24,9 @@ namespace CustomSteps
 
         private class WalkerTexasRanger : MetadataWalker
         {
-            private readonly LinkContext _context;
-
             public WalkerTexasRanger(LinkContext context)
+                : base(context)
             {
-                _context = context;
             }
 
             public new void WalkAssembly(AssemblyDefinition assembly)
