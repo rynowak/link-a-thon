@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DependencyInjectionInjection\DependencyInjectionInjection.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Can describe roots to the linker -->
     <TrimmerRootDescriptor Include="Linker.xml" Condition="'$(LinkAggressively)' == 'true'"/>
   </ItemGroup>

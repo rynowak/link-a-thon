@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -17,12 +18,13 @@ namespace CustomSteps
         // This code handles the patterns of our extension methods (generic) and our ServiceDescriptor creation methods.
         //
         // These methods all work the same semantically so they can be analyzed together.
-        public static bool TryParseGenericAddServiceMethod(MethodReference method, out TypeReference service, out TypeReference implementation)
+        public static bool TryParseGenericAddServiceMethod(MethodReference method, out ServiceDescriptor service)
         {
             service = null;
-            implementation = null;
+            TypeReference serviceType = null;
+            TypeReference implementationType = null;
 
-            if (method.DeclaringType.FullName != PrimaryExtensionsType && 
+            if (method.DeclaringType.FullName != PrimaryExtensionsType &&
                 method.DeclaringType.FullName != SecondaryExtensionsType &&
                 method.DeclaringType.FullName != ServiceDescriptorType)
             {
@@ -34,29 +36,33 @@ namespace CustomSteps
                 if (generic.GenericArguments.Count == 1)
                 {
                     // This is a case like services.AddSingleton<TService>()
-                    service = generic.GenericArguments[0];
-                    implementation = generic.GenericArguments[0];
+                    serviceType = generic.GenericArguments[0];
+                    implementationType = generic.GenericArguments[0];
                 }
                 else if (generic.GenericArguments.Count == 2)
                 {
                     // This is a case like services.AddSingleton<TService, TImplementation>()
-                    service = generic.GenericArguments[0];
-                    implementation = generic.GenericArguments[1];
+                    serviceType = generic.GenericArguments[0];
+                    implementationType = generic.GenericArguments[1];
+                }
+                else
+                {
+                    // Nothing to analyze here, we don't understand it.
+                    return true;
                 }
 
-                // NOTE: this is commented out because we need to support open-generic service implementations. 
-                // Logging has a class that implements IConfigureOptions<TProvider> with an open generic.
-                //
-                // If either type is a generic type parameter (of the calling method), blank it out - we don't
+                // If either type is a generic type parameter(of the calling method), blank it out we don't
                 // have the ability to analyze that. This is the pattern that's used by things like AddHostedService<T>().
-                //if (service != null && service.ContainsGenericParameter)
-                //{
-                //    service = null;
-                //}
-                //if (implementation != null && implementation.ContainsGenericParameter)
-                //{
-                //    implementation = null;
-                //}
+                if (serviceType.IsGenericParameter)
+                {
+                    // Nothing to analyze here, we don't understand it.
+                    return true;
+                }
+
+                if (implementationType.IsGenericParameter)
+                {
+                    implementationType = null;
+                }
 
                 // Search for a Func<> argument. We have an overload that accepts a TImplementation type parameter,
                 // but the type argument isn't passed through to the underlying DI system. If we see this, then
@@ -64,11 +70,33 @@ namespace CustomSteps
                 for (var i = 0; i < generic.Parameters.Count; i++)
                 {
                     var parameter = generic.Parameters[i];
-                    if (parameter.ParameterType.FullName.StartsWith("System.Func"))
+                    if (parameter.ParameterType is GenericParameter)
                     {
-                        implementation = null;
+                        implementationType = null;
                         break;
                     }
+
+                    if (parameter.ParameterType.FullName.StartsWith("System.Func"))
+                    {
+                        implementationType = null;
+                        break;
+                    }
+                }
+
+                var lifetime = ParseLifetimeFromMethodName(method.Name);
+                if (lifetime == null)
+                {
+                    return false;
+                }
+
+                if (serviceType != null && serviceType as GenericParameter == null)
+                {
+                    service = new ServiceDescriptor()
+                    {
+                        ServiceType = serviceType,
+                        ImplementationType = implementationType,
+                        Lifetime = lifetime.Value,
+                    };
                 }
 
                 // Return true even if we didn't capture types, because we figured out what method this is
@@ -82,12 +110,12 @@ namespace CustomSteps
         public static bool TryParseNonGenericAddServiceMethod(
             MethodBody body,
             int ip,
-            MethodReference method, 
-            out TypeReference service, 
-            out TypeReference implementation)
+            MethodReference method,
+            out ServiceDescriptor service)
         {
             service = null;
-            implementation = null;
+            TypeReference serviceType = null;
+            TypeReference implementationType = null;
 
             if (method.DeclaringType.FullName != PrimaryExtensionsType &&
                 method.DeclaringType.FullName != SecondaryExtensionsType &&
@@ -122,8 +150,8 @@ namespace CustomSteps
                     var instruction = body.Instructions[i];
                     if (instruction.OpCode == OpCodes.Ldtoken && instruction.Operand is TypeReference type)
                     {
-                        service = type;
-                        implementation = type;
+                        serviceType = type;
+                        implementationType = type;
                         break;
                     }
                 }
@@ -136,7 +164,7 @@ namespace CustomSteps
                     var instruction = body.Instructions[i];
                     if (instruction.OpCode == OpCodes.Ldtoken && instruction.Operand is TypeReference type)
                     {
-                        implementation = type;
+                        implementationType = type;
                         break;
                     }
                 }
@@ -148,7 +176,7 @@ namespace CustomSteps
                     var instruction = body.Instructions[i];
                     if (instruction.OpCode == OpCodes.Ldtoken && instruction.Operand is TypeReference type)
                     {
-                        service = type;
+                        serviceType = type;
                         break;
                     }
                 }
@@ -158,7 +186,7 @@ namespace CustomSteps
                 // dunno mang.
                 return false;
             }
-            
+
             // These methods also accept Funcs and instances, and that means we don't know the implementation
             // type.
             for (var i = 0; i < method.Parameters.Count; i++)
@@ -166,24 +194,41 @@ namespace CustomSteps
                 var parameter = method.Parameters[i];
                 if (parameter.ParameterType.FullName.StartsWith("System.Func"))
                 {
-                    implementation = null;
+                    implementationType = null;
                     break;
                 }
 
                 if (parameter.ParameterType.FullName == "System.Object")
                 {
-                    implementation = null;
+                    implementationType = null;
                     break;
                 }
+            }
+
+            var lifetime = ParseLifetimeFromMethodName(method.Name);
+            if (lifetime == null)
+            {
+                return false;
+            }
+
+            if (serviceType != null)
+            {
+                service = new ServiceDescriptor()
+                {
+                    ServiceType = serviceType,
+                    ImplementationType = implementationType,
+                    Lifetime = lifetime.Value,
+                };
             }
 
             return true;
         }
 
-        public static bool TryParseHostedService(MethodReference method, out TypeReference service, out TypeReference implementation)
+        public static bool TryParseHostedService(MethodReference method, out ServiceDescriptor service)
         {
             service = null;
-            implementation = null;
+            TypeReference serviceType = null;
+            TypeReference implementationType = null;
 
             if (method.DeclaringType.FullName != HostedServiceType)
             {
@@ -194,8 +239,8 @@ namespace CustomSteps
             {
                 if (generic.GenericArguments.Count == 1)
                 {
-                    service = generic.Resolve().GenericParameters[0].Constraints[0].ConstraintType;
-                    implementation = generic.GenericArguments[0];
+                    serviceType = generic.Resolve().GenericParameters[0].Constraints[0].ConstraintType;
+                    implementationType = generic.GenericArguments[0];
                 }
 
                 // Search for a Func<> argument. We have an overload that accepts a TImplementation type parameter,
@@ -206,9 +251,19 @@ namespace CustomSteps
                     var parameter = generic.Parameters[i];
                     if (parameter.ParameterType.FullName.StartsWith("System.Func"))
                     {
-                        implementation = null;
+                        implementationType = null;
                         break;
                     }
+                }
+
+                if (serviceType != null)
+                {
+                    service = new ServiceDescriptor()
+                    {
+                        ServiceType = serviceType,
+                        ImplementationType = implementationType,
+                        Lifetime = ServiceLifetime.Singleton,
+                    };
                 }
 
                 // Return true even if we didn't capture types, because we figured out what method this is
@@ -235,6 +290,26 @@ namespace CustomSteps
             }
 
             return false; // No support for the overloads that accept a type yet.
+        }
+
+        private static ServiceLifetime? ParseLifetimeFromMethodName(string name)
+        {
+            if (name.Contains(ServiceLifetime.Singleton.ToString()))
+            {
+                return ServiceLifetime.Singleton;
+            }
+
+            if (name.Contains(ServiceLifetime.Scoped.ToString()))
+            {
+                return ServiceLifetime.Scoped;
+            }
+
+            if (name.Contains(ServiceLifetime.Transient.ToString()))
+            {
+                return ServiceLifetime.Transient;
+            }
+
+            return null;
         }
     }
 }

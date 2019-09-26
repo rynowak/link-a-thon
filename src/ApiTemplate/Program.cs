@@ -85,6 +85,7 @@ namespace ApiTemplate
 #else
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .UseServiceProviderFactory(new DefaultServiceProviderFactory())
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseUrls("http://*:5000");
@@ -101,5 +102,19 @@ namespace ApiTemplate
                                                 // But keep logging for app startup/shutdown
                                                 .AddFilter("Microsoft.Hosting.Lifetime", LogLevel.Information));
 #endif
+
+        private class ServiceProviderFactory : IServiceProviderFactory<IServiceCollection>
+        {
+            public IServiceCollection CreateBuilder(IServiceCollection services)
+            {
+                return new ServiceCollection();
+            }
+
+            public IServiceProvider CreateServiceProvider(IServiceCollection containerBuilder)
+            {
+                GC.KeepAlive(typeof(Microsoft.Extensions.DependencyInjectionInjection.ServiceProvider));
+                return containerBuilder.BuildServiceProvider();
+            }
+        }
     }
 }

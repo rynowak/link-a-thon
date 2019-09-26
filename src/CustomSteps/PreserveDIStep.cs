@@ -1,20 +1,17 @@
-﻿using Mono.Cecil;
-using Mono.Cecil.Cil;
-using Mono.Linker;
-using Mono.Linker.Steps;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices.ComTypes;
-using System.Xml;
+using Microsoft.Extensions.DependencyInjection;
+using Mono.Cecil;
+using Mono.Linker;
+using Mono.Linker.Steps;
 
 namespace CustomSteps
 {
     public class PreserveDIStep : MarkStep
     {
-        private readonly List<(TypeReference service, TypeReference implementation)> services = new List<(TypeReference service, TypeReference implementation)>();
+        private readonly List<ServiceDescriptor> services = new List<ServiceDescriptor>();
         private readonly List<TypeReference> options = new List<TypeReference>();
         private readonly List<TypeReference> activated = new List<TypeReference>();
 
@@ -29,14 +26,18 @@ namespace CustomSteps
             using (var writer = new StreamWriter("di.txt"))
             {
                 services.Clear();
+                options.Clear();
+                activated.Clear();
 
                 base.Process(context);
 
-                foreach (var (service, implementation) in services)
+                foreach (var service in services)
                 {
-                    writer.WriteLine($"{service?.FullName}: {implementation?.FullName ?? "(instance/factory)"}");
+                    writer.WriteLine($"{service.Lifetime}: {service.ServiceType?.FullName} - {service.ImplementationType?.FullName ?? "(instance/factory)"}");
                 }
             }
+
+            StaticContainerInjector.BuildStaticContainer(context, services);
         }
 
         protected override TypeDefinition MarkType(TypeReference reference)
@@ -75,7 +76,7 @@ namespace CustomSteps
                         continue;
                     }
 
-                    if (DIFacts.TryParseGenericAddServiceMethod(operand, out var service, out var implementation))
+                    if (DIFacts.TryParseGenericAddServiceMethod(operand, out var service))
                     {
                         if (service == null)
                         {
@@ -83,15 +84,21 @@ namespace CustomSteps
                             continue;
                         }
 
-                        MarkServiceType(service, implementation);
+                        MarkServiceType(service);
                     }
-                    else if (DIFacts.TryParseHostedService(operand, out service, out implementation))
+                    else if (DIFacts.TryParseHostedService(operand, out service))
                     {
-                        MarkServiceType(service, implementation);
+                        MarkServiceType(service);
                     }
-                    else if (DIFacts.TryParseNonGenericAddServiceMethod(body, i, operand, out service, out implementation))
+                    else if (DIFacts.TryParseNonGenericAddServiceMethod(body, i, operand, out service))
                     {
-                        MarkServiceType(service, implementation);
+                        if (service == null)
+                        {
+                            Console.WriteLine($"Cannot analyze call to {operand} in {method}");
+                            continue;
+                        }
+
+                        MarkServiceType(service);
                     }
                     else if (DIFacts.TryParseActivatedType(operand, out var activatedType))
                     {
@@ -105,19 +112,15 @@ namespace CustomSteps
                         activated.Add(activatedType);
                         PreserveConstructors(resolved);
                     }
-                    else if (IsDIMethod(operand))
-                    {
-                        Console.WriteLine();
-                    }
                 }
             }
         }
 
-        private void MarkServiceType(TypeReference serviceReference, TypeReference implementationReference)
+        private void MarkServiceType(ServiceDescriptor service)
         {
-            services.Add((serviceReference, implementationReference));
+            services.Add(service);
 
-            var type = implementationReference?.Resolve();
+            var type = service.ImplementationType?.Resolve();
             if (type == null || !type.IsClass)
             {
                 return;
@@ -139,7 +142,5 @@ namespace CustomSteps
                 MarkIndirectlyCalledMethod(resolved);
             }
         }
-
-        private bool IsDIMethod(MethodReference method) => method.DeclaringType.FullName.StartsWith("Microsoft.Extensions.DependencyInjection", StringComparison.Ordinal);
     }
 }
