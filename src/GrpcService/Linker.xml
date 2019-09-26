@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- See: https://github.com/mono/linker/blob/master/src/linker/README.md#syntax-of-xml-descriptor -->
+<linker>
+  <assembly fullname="System.Private.CoreLib">
+    <type fullname="System.Object" />
+  </assembly>
+
+  <assembly fullname="GrpcService">
+    <type fullname="GrpcService.Startup" />
+    <type fullname="BenchmarkServiceImpl" />
+  </assembly>
+
+  <assembly fullname="Microsoft.AspNetCore.Routing">
+    <type fullname="Microsoft.AspNetCore.Routing.EndpointRoutingMiddleware">
+      <method name="Invoke" />
+      <method name="InvokeAsync" />
+      <method name=".ctor" />
+    </type>
+    <type fullname="Microsoft.AspNetCore.Routing.EndpointMiddleware">
+      <method name="Invoke" />
+      <method name="InvokeAsync" />
+      <method name=".ctor" />
+    </type>
+  </assembly>
+
+  <assembly fullname="Microsoft.AspNetCore.Authorization.Policy">
+    <type fullname="Microsoft.AspNetCore.Authorization.AuthorizationMiddleware">
+      <method name="Invoke" />
+      <method name="InvokeAsync" />
+      <method name=".ctor" />
+    </type>
+  </assembly>
+
+  <assembly fullname="Microsoft.AspNetCore.HttpsPolicy">
+    <type fullname="Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware">
+      <method name="Invoke" />
+      <method name="InvokeAsync" />
+      <method name=".ctor" />
+    </type>
+  </assembly>
+
+  <assembly fullname="Microsoft.AspNetCore.HostFiltering">
+    <type fullname="Microsoft.AspNetCore.HostFiltering.HostFilteringMiddleware">
+      <method name="Invoke" />
+      <method name="InvokeAsync" />
+      <method name=".ctor" />
+    </type>
+  </assembly>
+
+</linker>
