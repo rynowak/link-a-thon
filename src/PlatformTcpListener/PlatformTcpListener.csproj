@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!-- Don't simplify this. We need to override stuff defined in the SDK. -->
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk.Web" />
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <UseCustomStepPreserveDI>false</UseCustomStepPreserveDI>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <!-- Don't simplify this. We need to override stuff defined in the SDK. -->
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.Web" />
+  <Import Project="$(CustomLinkerStepsTargetsPath)" />
+  <Import Project="$(CustomR2RLogicTargetsPath)" Condition="'$([MSBuild]::IsOSPlatform(Windows))' != 'true'" />
+
+</Project>
