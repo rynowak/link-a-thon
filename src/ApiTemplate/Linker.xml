@@ -3,6 +3,7 @@
 <linker>
   <assembly fullname="System.Private.CoreLib">
     <type fullname="System.Object" />
+    <type fullname="System.Runtime.CompilerServices.RuntimeHelpers" />
   </assembly>
 
   <assembly fullname="ApiTemplate">
