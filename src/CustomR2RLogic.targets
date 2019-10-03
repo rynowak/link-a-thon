@@ -1,11 +1,15 @@
 <Project>
+  <PropertyGroup>
+    <TibcDir>$(MSBuildProjectDirectory)/tibcdata/</TibcDir>
+  </PropertyGroup>
 
   <!-- These targets will use the locally-built crossgen, which doesn't take /JITPath -->
   <Target Name="UseLocalCrossgen"
           AfterTargets="_PrepareForReadyToRunCompilation">
     <ItemGroup>
       <_CrossgenTool Remove="@(_CrossgenTool)" />
-      <_CrossgenTool Include="$(CoreClrBinariesDir)crossgen" />
+      <_CrossgenTool Include="$(CoreClrBinariesDir)crossgen" Condition="'$(UseCrossgen2)' != 'true'" />
+      <_CrossgenTool Include="$(CoreClrBinariesDir)crossgen2/crossgen2" Condition="'$(UseCrossgen2)' == 'true'" />
     </ItemGroup>
     <Error Condition="!Exists('@(_CrossgenTool)')"
            Text="crossgen not found in $(CoreClrBinariesDir)" />
@@ -18,18 +22,50 @@
     <!-- Work around non-assemblies in the input that are normally filtered out by the ReadyToRun task -->
     <ItemGroup>
       <_ReadyToRunImplementationAssemblies Remove="@(_ReadyToRunImplementationAssemblies)"
-                                           Condition=" '%(Extension)' != '.dll' " />
+                                           Condition=" '%(Extension)' != '.dll'" />
+      <_TibcFiles Include="$(TibcDir)*.tibc" Condition="'$(UseCrossgen2)' == 'true'" />
     </ItemGroup>
+
     <!-- Necessary when sending to perflab - the permissions are not preserved when zipping/unzipping. -->
     <Exec Command="chmod +x @(_CrossgenTool)" />
-    <PropertyGroup>
+
+    <!--
+
+      Arguments and commands for old Crossgen
+
+    -->
+    <PropertyGroup Condition="'$(UseCrossgen2)' != 'true'">
       <CrossgenCommand>@(_CrossgenTool) /nologo /MissingDependenciesOK</CrossgenCommand>
       <!-- crossgen fails if System.Private.CoreLib isn't a fully-qualified path -->
       <CrossgenCommand>$(CrossgenCommand) /r @(_ReadyToRunImplementationAssemblies->'%(FullPath)', ' /r ')</CrossgenCommand>
     </PropertyGroup>
-    <ItemGroup>
+
+    <ItemGroup Condition="'$(UseCrossgen2)' != 'true'">
       <CrossgenCommands Include="$(CrossgenCommand) /out %(_ReadyToRunCompileList.OutputR2RImage) %(_ReadyToRunCompileList.Identity)" />
     </ItemGroup>
+
+    <!-- 
+
+      Arguments and commands for Crossgen2 wow so shiny
+
+    -->
+    <PropertyGroup Condition="'$(UseCrossgen2)' == 'true'">
+      <CrossgenCommand>@(_CrossgenTool)</CrossgenCommand>
+      
+      <CrossgenCommand>$(CrossgenCommand) --resilient</CrossgenCommand>
+      <CrossgenCommand Condition="'$(ProduceTuningImage)'=='true'">$(CrossgenCommand) --tuning </CrossgenCommand>
+      <CrossgenCommand Condition="'$(ProduceTuningImage)'!='true'">$(CrossgenCommand) --Ot </CrossgenCommand>
+      <CrossgenCommand Condition="'$(UseTibcData)'=='true'">$(CrossgenCommand) --inputbubble --partial -t:@(_TibcFiles->'%(FullPath)', ' -t:')</CrossgenCommand>
+      <!-- crossgen fails if System.Private.CoreLib isn't a fully-qualified path -->
+      <CrossgenCommand>$(CrossgenCommand) -r:@(_ReadyToRunImplementationAssemblies->'%(FullPath)', ' -r:')</CrossgenCommand>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(UseCrossgen2)' == 'true'">
+      <CrossgenCommands Condition="'%(_ReadyToRunCompileList.Filename)' != '$(AssemblyName)' Or '$(UseTibcData)'!='true'" Include="$(CrossgenCommand) -o:%(_ReadyToRunCompileList.OutputR2RImage) %(_ReadyToRunCompileList.Identity)" />
+      <CrossgenCommands Condition="'%(_ReadyToRunCompileList.Filename)' == '$(AssemblyName)' And '$(UseTibcData)'=='true'" Include="$(CrossgenCommand) --compilebubblegenerics --nonlocalgenerics_fromprofiledata -o:%(_ReadyToRunCompileList.OutputR2RImage) %(_ReadyToRunCompileList.Identity)" />
+    </ItemGroup>
+    <Message Importance="High" Text="Crossgen2 %(CrossgenCommands.Identity)" />
+    
     <Exec Command="%(CrossgenCommands.Identity)" />
   </Target>
 

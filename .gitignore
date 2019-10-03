@@ -331,3 +331,9 @@ ASALocalRun/
 
 .linker.txt
 coreclrbin
+
+.vscode/
+tibcdata/
+rawibcdata/
+src/ApiTemplate/tibcdata
+published/

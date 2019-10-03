@@ -11,6 +11,12 @@ if [[ -z "$client" ]] || [[ -z "$server" ]]; then
     exit 1
 fi
 
+crossgen2Arguments=
+if [ "$1" == "crossgen2" ]; then
+    echo "Using crossgen2"
+    crossgen2Arguments="--build-arg /p:UseCrossgen2=true --build-arg /p:UseTibcData=true"
+fi
+
 # clone benchmarks repo
 if [[ ! -e "$driverproject" ]]; then
     git clone https://github.com/aspnet/benchmarks
@@ -24,6 +30,8 @@ dotnet run -p "$driverproject" -- \
        --self-contained \
        --sdk 3.0.100-rc1-014176 \
        --path weatherforecast \
+       --aspnetcoreversion 3.0 \
+       --runtimeversion 3.0 \
        --warmup 1 \
        --duration 2 \
        --build-arg "/p:SelfContained=true" \
@@ -35,7 +43,8 @@ dotnet run -p "$driverproject" -- \
        --display-output \
        --iterations 1 \
        --collect-counters \
-       --env "COMPlus_gcServer=1"
+       --env "COMPlus_gcServer=1" \
+       $crossgen2Arguments
 
 #       --fetch \
 #       --collect-startup \
