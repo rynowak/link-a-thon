@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <TibcDir>$(MSBuildProjectDirectory)/tibcdata/</TibcDir>
+    <TibcDir>$(CoreClrBinariesDir)tibcdata/</TibcDir>
   </PropertyGroup>
 
   <!-- These targets will use the locally-built crossgen, which doesn't take /JITPath -->
